@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Web Security Scanner & CMS Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="/" class="logo">
+            <div class="logo-icon">&#x1f6e1;</div>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Security Assessment Platform</div>
+            </div>
+        </a>
+        <div class="header-actions">
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
+            <button class="btn-embed" onclick="showEmbedModal()">&#x2699; Embed Code</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Scanner -->
+        <section class="scanner-section">
+            <div class="scanner-card">
+                <h1 class="scanner-title">DNA-Level Security Analysis</h1>
+                <p class="scanner-subtitle">Enter a website URL to perform comprehensive security assessment — SSL, headers, ports, DNS, technology detection, and vulnerability scanning.</p>
+
+                <div class="scan-form">
+                    <input type="text" class="url-input" id="urlInput" placeholder="https://example.com" autocomplete="url">
+                    <button class="btn-scan" id="scanBtn" onclick="startScan()">
+                        <span id="scanBtnIcon">&#x1f50d;</span>
+                        <span id="scanBtnText">Start Scan</span>
+                    </button>
+                </div>
+
+                <div class="scan-options" id="scanOptions">
+                    <label class="scan-option active" data-type="ssl">
+                        <input type="checkbox" checked> &#x1f512; SSL/TLS
+                    </label>
+                    <label class="scan-option active" data-type="headers">
+                        <input type="checkbox" checked> &#x1f4cb; Headers
+                    </label>
+                    <label class="scan-option active" data-type="ports">
+                        <input type="checkbox" checked> &#x1f6aa; Ports
+                    </label>
+                    <label class="scan-option active" data-type="dns">
+                        <input type="checkbox" checked> &#x1f310; DNS
+                    </label>
+                    <label class="scan-option active" data-type="tech">
+                        <input type="checkbox" checked> &#x2699; Technology
+                    </label>
+                    <label class="scan-option active" data-type="vulns">
+                        <input type="checkbox" checked> &#x26a0; Vulnerabilities
+                    </label>
+                    <label class="scan-option active" data-type="enterprise">
+                        <input type="checkbox" checked> &#x1f3e2; Enterprise CRM
+                    </label>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-section" id="progressSection">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="progressModule" class="scanning-pulse">Initializing scan...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="results-section" id="resultsSection">
+            <!-- Export Bar -->
+            <div class="export-bar">
+                <button class="btn-export btn-export-primary" onclick="exportJSON()">&#x1f4e5; Export JSON Report</button>
+                <button class="btn-export" onclick="exportCSV()">&#x1f4c4; Export CSV</button>
+                <button class="btn-export btn-export-primary" onclick="generatePDF()">&#x1f4d1; Download PDF</button>
+                <button class="btn-export" onclick="showEmailModal()">&#x1f4e7; Email Report</button>
+                <button class="btn-export" onclick="printReport()">&#x1f5a8; Print Report</button>
+                <button class="btn-export" onclick="newScan()">&#x1f504; New Scan</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-grid" id="summaryGrid"></div>
+
+            <!-- Tabs -->
+            <div class="tabs" id="resultTabs">
+                <button class="tab active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+                <button class="tab" data-tab="ssl" onclick="switchTab('ssl')">SSL/TLS</button>
+                <button class="tab" data-tab="headers" onclick="switchTab('headers')">Headers</button>
+                <button class="tab" data-tab="ports" onclick="switchTab('ports')">Ports</button>
+                <button class="tab" data-tab="dns" onclick="switchTab('dns')">DNS</button>
+                <button class="tab" data-tab="tech" onclick="switchTab('tech')">Technology</button>
+                <button class="tab" data-tab="vulns" onclick="switchTab('vulns')">Vulnerabilities</button>
+                <button class="tab" data-tab="enterprise" onclick="switchTab('enterprise')">Enterprise CRM</button>
+                <button class="tab" data-tab="credentials" onclick="switchTab('credentials')">Auth Required</button>
+                <button class="tab" data-tab="pricing" onclick="switchTab('pricing')">Agency Pricing</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="tabContents"></div>
+        </section>
+    </main>
+
+    <!-- Embed Modal -->
+    <div class="modal-overlay" id="embedModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeEmbedModal()">&times;</button>
+            <h3 class="modal-title">Embed Security Scanner</h3>
+            <p style="color:var(--text-secondary);margin-bottom:16px;font-size:14px;">
+                Copy this code to embed the security scanner widget in your SEO CMS or any website:
+            </p>
+            <div class="code-block" id="embedCode"></div>
+            <br>
+            <button class="btn-scan" onclick="copyEmbed()" style="width:100%;justify-content:center;">Copy Embed Code</button>
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+            <h3 class="modal-title">&#x1f4e7; Share Report via Email</h3>
+            <p style="color:var(--text-secondary);margin-bottom:14px;font-size:13px;">Send the security report directly to your client.</p>
+            <input type="email" class="url-input" id="emailTo" placeholder="client@example.com" style="margin-bottom:10px;">
+            <input type="text" class="url-input" id="emailSubject" placeholder="Security Assessment Report" style="margin-bottom:10px;">
+            <textarea class="url-input" id="emailBody" rows="4" style="margin-bottom:14px;resize:vertical;" placeholder="Hi, please find attached the security assessment report..."></textarea>
+            <button class="btn-scan" onclick="sendEmail()" style="width:100%;justify-content:center;">&#x1f4e8; Send Report</button>
+        </div>
+    </div>
+
+    <script src="/static/js/scanner.js"></script>
+</body>
+</html>

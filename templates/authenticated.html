@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticated Deep Scan - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <div class="logo-icon">&#x1f6e1;</div>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Authenticated Deep Scan</div>
+            </div>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="btn-embed">&#x2190; Back to Scanner</a>
+        </div>
+    </header>
+    <main class="main">
+        <div class="scanner-card">
+            <h1 class="scanner-title">Authenticated Security Scan</h1>
+            <p class="scanner-subtitle">Provide credentials to unlock deep security testing — admin panels, API endpoints, session management, RBAC, and more.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div>
+                    <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Target URL</label>
+                    <input type="text" class="url-input" id="authUrl" placeholder="https://example.com" style="width:100%;">
+                </div>
+                <div>
+                    <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Auth Type</label>
+                    <select class="url-input" id="authType" style="width:100%;">
+                        <option value="cookie">Session Cookie</option>
+                        <option value="bearer">Bearer Token / JWT</option>
+                        <option value="apikey">API Key</option>
+                        <option value="basic">Basic Auth (user:pass)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Credential Value</label>
+                <input type="password" class="url-input" id="authValue" placeholder="Paste your cookie / token / API key here" style="width:100%;">
+            </div>
+            <button class="btn-scan" onclick="startAuthScan()" style="width:100%;justify-content:center;">
+                &#x1f510; Start Authenticated Deep Scan
+            </button>
+
+            <div style="margin-top:24px;padding:16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;">
+                <h3 style="font-size:14px;color:var(--warning);margin-bottom:8px;">&#x1f512; Security Note</h3>
+                <p style="font-size:12px;color:var(--text-secondary);">Credentials are used only for this scan session and are never stored. All testing is performed on your behalf with your authorization. Only scan websites you own or have written permission to test.</p>
+            </div>
+        </div>
+
+        <div id="authResults" style="margin-top:32px;display:none;">
+            <div class="scanner-card">
+                <h2 class="scanner-title" style="font-size:20px;">Deep Scan Results</h2>
+                <div id="authResultsContent"></div>
+            </div>
+        </div>
+    </main>
+    <script>
+    async function startAuthScan() {
+        const url = document.getElementById('authUrl').value.trim();
+        if (!url) { alert('Enter target URL'); return; }
+        
+        document.getElementById('authResults').style.display = 'block';
+        document.getElementById('authResultsContent').innerHTML = '<div class="scanning-pulse" style="text-align:center;padding:40px;color:var(--accent);">Running authenticated deep scan...</div>';
+
+        const resp = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url, scan_types: ['ssl','headers','tech','vulns','enterprise']}),
+        });
+        const data = await resp.json();
+        
+        const poll = setInterval(async () => {
+            const r = await fetch(`/api/scan/${data.scan_id}`);
+            const d = await r.json();
+            if (d.status === 'completed') {
+                clearInterval(poll);
+                renderAuthResults(d);
+            }
+        }, 1500);
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+    function renderAuthResults(data) {
+        const c = document.getElementById('authResultsContent');
+        const s = data.summary;
+        const sev = s.by_severity || {};
+        const ent = data.results.enterprise || {};
+
+        let html = `
+            <div class="summary-grid" style="margin-bottom:24px;">
+                <div class="summary-card grade-card grade-${s.grade}"><div class="number">${s.grade}</div><div class="label">Grade</div></div>
+                <div class="summary-card"><div class="number">${s.total_issues||0}</div><div class="label">Issues</div></div>
+                <div class="summary-card"><div class="number severity-critical">${sev.critical||0}</div><div class="label">Critical</div></div>
+                <div class="summary-card"><div class="number severity-high">${sev.high||0}</div><div class="label">High</div></div>
+            </div>
+        `;
+
+        // Enterprise sections
+        if (ent.api_security) {
+            html += renderSection('API Security', ent.api_security);
+        }
+        if (ent.app_security) {
+            html += renderSection('Application Security', ent.app_security);
+        }
+        if (ent.db_security) {
+            html += renderSection('Database Security', ent.db_security);
+        }
+        if (ent.infra_security) {
+            html += renderSection('Infrastructure Security', ent.infra_security);
+        }
+        if (ent.api_integrations && ent.api_integrations.length > 0) {
+            html += '<h3 style="margin:24px 0 12px;font-size:16px;">Detected API Integrations</h3>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+            for (const api of ent.api_integrations) {
+                html += `<span class="tag tag-tech">${esc(api.name)}</span>`;
+            }
+            html += '</div>';
+        }
+
+        c.innerHTML = html;
+    }
+
+    function renderSection(title, items) {
+        let html = `<h3 style="margin:24px 0 12px;font-size:16px;">${title}</h3>`;
+        for (const item of items) {
+            const color = item.status === 'protected' || item.status === 'active' || item.status === 'detected' || item.status === 'hidden' ? 'var(--success)' :
+                          item.status === 'vulnerable' || item.status === 'exposed' ? 'var(--danger)' : 'var(--warning)';
+            html += `
+                <div style="padding:14px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;border-left:3px solid ${color};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <strong style="font-size:14px;">${esc(item.check)}</strong>
+                        <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${color}20;color:${color};text-transform:uppercase;">${esc(item.status)}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">${esc(item.detail)}</div>
+                    <div style="font-size:11px;color:var(--success);">Fix: ${esc(item.solution)}</div>
+                </div>`;
+        }
+        return html;
+    }
+    </script>
+</body>
+</html>
