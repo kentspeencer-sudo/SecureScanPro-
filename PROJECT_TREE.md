@@ -19,7 +19,7 @@ Open `http://localhost:8000/` in browser.
 
 ```
 SecureScanPro-/
-├── app.py                          # [280 lines] FastAPI main — routes, scan orchestration, grading
+├── app.py                          # [295 lines] FastAPI main — routes, scan orchestration, grading
 ├── main.py                         # [5 lines]   Entry point: `uvicorn app:app`
 ├── pyproject.toml                  # Project metadata & dependencies
 ├── securescan-pro.html             # [~47KB] Standalone single-file scanner (embed anywhere)
@@ -34,11 +34,12 @@ SecureScanPro-/
 │   ├── dns_checker.py              # [173 lines] DNS records, SPF/DMARC/DKIM, ping
 │   ├── tech_detector.py            # [220 lines] CMS detection, JS libs, server stack
 │   ├── vuln_checker.py             # [212 lines] Exposed paths, form security, mixed content
-│   └── enterprise_checker.py       # [365 lines] Enterprise CRM: API/DB/App/Infra security
+│   ├── enterprise_checker.py       # [365 lines] Enterprise CRM: API/DB/App/Infra security
+│   └── deep_scanner.py             # [450 lines] Authenticated deep scan: API/DB/Admin/Session
 │
 ├── templates/                      # Jinja2 HTML templates
 │   ├── dashboard.html              # [143 lines] Main scanner dashboard UI
-│   ├── authenticated.html          # [150 lines] Credential-gated deep scan page
+│   ├── authenticated.html          # [260 lines] Credential-gated deep scan page with tabbed results
 │   ├── embed.html                  # [120 lines] Embeddable widget (iframe/JS)
 │   └── report.html                 # [165 lines] Report viewer page
 │
@@ -50,7 +51,7 @@ SecureScanPro-/
         └── embed-widget.js         # [24 lines]  Embed widget loader script
 ```
 
-**Total: ~3,587 lines of code across 17 files**
+**Total: ~4,300 lines of code across 18 files**
 
 ---
 
@@ -187,6 +188,43 @@ User enters URL → dashboard.html
 
 ---
 
+### `modules/deep_scanner.py` — Authenticated Deep Scanner
+
+**Function:** `run_deep_scan(url, auth_type, credential) → DeepScanResult` (async)
+**Returns:** `DeepScanResult(url, auth_type, api_deep[], db_deep[], admin_deep[], session_deep[], all_issues[], error)`
+
+**4 Deep Scan Layers (using provided credentials):**
+
+**1. API Deep Scan (`_api_deep_scan`):**
+- Authentication validation (compare auth vs non-auth responses)
+- Rate limiting test (5 rapid requests, check for 429)
+- API endpoint discovery (13 common paths: /api, /graphql, /swagger.json, etc.)
+- Auth bypass test (try endpoints without credentials)
+- IDOR guidance (Insecure Direct Object Reference)
+
+**2. Database Audit (`_db_deep_scan`):**
+- Database admin panel discovery (14 paths: phpMyAdmin, Adminer, pgAdmin, Mongo Express, Redis Commander, etc.)
+- SQL injection detection (error-based, 4 payloads, 12 error patterns)
+- Data export endpoint discovery (12 paths: /api/users, /api/export, /backup, etc.)
+
+**3. Admin Panel Audit (`_admin_deep_scan`):**
+- Admin panel discovery (18 common paths)
+- Login requirement detection (password input detection)
+- RBAC / privilege escalation test (9 higher-privilege paths)
+- Sensitive file exposure (15 files: .env, config.json, .git/config, Dockerfile, etc.)
+
+**4. Session Security (`_session_deep_scan`):**
+- Cookie security analysis (HttpOnly, Secure, SameSite flags)
+- Token/key exposure in response body (7 patterns: JWT, Stripe, AWS, GitHub, Slack)
+- Session fixation test
+- CORS with credentials reflection test
+- Cache control analysis for authenticated pages
+
+**Auth Types Supported:** `cookie`, `bearer`, `apikey`, `basic`
+**Helper:** `_build_headers(auth_type, credential)` — builds HTTP headers for each auth type
+
+---
+
 ### `modules/enterprise_checker.py` — Enterprise CRM Security
 
 **Function:** `check_enterprise_security(url) → EnterpriseResult` (async)
@@ -284,9 +322,24 @@ Basic Security Audit ($500-$1,500) → Incident Response Retainer ($3,000-$10,00
 **Structure:**
 - Header with "Back to Scanner" link
 - Form: Target URL + Auth Type dropdown (Cookie/Bearer/API Key/Basic Auth) + Credential input
-- "Start Authenticated Deep Scan" button
-- Results section renders dynamically after scan
+- "What Deep Scan Checks" info box showing 4 scan types
+- "Start Authenticated Deep Scan" button with progress bar
+- Results section with tabbed interface:
+  - **Overview** — all issues sorted by severity with category badges
+  - **API Deep Scan** — auth validation, rate limiting, endpoint discovery, IDOR
+  - **Database Audit** — admin panels, SQL injection, data export
+  - **Admin Panel** — RBAC, privilege escalation, sensitive files
+  - **Session Security** — cookies, tokens, CORS, cache control
+  - **Enterprise CRM** — API/DB/App/Infra security layers
+- PDF report generation for deep scan results
 - Security note about credential handling
+
+**Key JS Functions:**
+- `startAuthScan()` — sends URL + auth_type + credential to `/api/scan` with `deep` scan type
+- `renderAuthResults(data)` — renders summary + tabbed deep scan results
+- `renderDeepSection(title, items, icon)` — renders check items with status badges + fix code
+- `generateDeepPDF()` — generates printable PDF with all deep scan findings
+- `switchDeepTab(tabId)` — tab navigation
 
 ---
 

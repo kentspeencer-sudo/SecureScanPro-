@@ -26,6 +26,7 @@ from modules.dns_checker import check_dns
 from modules.tech_detector import detect_technologies
 from modules.vuln_checker import check_vulnerabilities
 from modules.enterprise_checker import check_enterprise_security
+from modules.deep_scanner import run_deep_scan
 
 app = FastAPI(title="Security Scanner API", version="1.0.0")
 
@@ -46,6 +47,8 @@ scans: dict[str, dict[str, Any]] = {}
 class ScanRequest(BaseModel):
     url: str
     scan_types: list[str] | None = None
+    auth_type: str | None = None
+    credential: str | None = None
 
 
 @dataclass
@@ -179,6 +182,17 @@ async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
             completed += 1
             scan["progress"] = int(completed / total_modules * 100)
 
+        if "deep" in scan_types and scan.get("auth_type") and scan.get("credential"):
+            scan["current_module"] = "Authenticated Deep Scan"
+            deep_result = await run_deep_scan(
+                url, scan["auth_type"], scan["credential"]
+            )
+            result_dict = asdict(deep_result)
+            scan["results"]["deep"] = result_dict
+            all_issues.extend(deep_result.all_issues)
+            completed += 1
+            scan["progress"] = int(completed / total_modules * 100)
+
         scan["all_issues"] = all_issues
         scan["summary"] = {
             "total_issues": len(all_issues),
@@ -224,6 +238,12 @@ async def start_scan(req: ScanRequest):
         "error": "",
     }
     scans[scan_id] = scan_data
+
+    if req.auth_type and req.credential:
+        scan_data["auth_type"] = req.auth_type
+        scan_data["credential"] = req.credential
+        if "deep" not in scan_types:
+            scan_types.append("deep")
 
     asyncio.create_task(run_scan(scan_id, url, scan_types))
 
