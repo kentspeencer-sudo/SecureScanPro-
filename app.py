@@ -28,6 +28,7 @@ from modules.vuln_checker import check_vulnerabilities
 from modules.enterprise_checker import check_enterprise_security
 from modules.deep_scanner import run_deep_scan
 from modules.threat_intel import run_threat_intel
+from modules.cvss_engine import enrich_issues_with_cvss
 
 app = FastAPI(title="Security Scanner API", version="1.0.0")
 
@@ -217,11 +218,25 @@ async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
             scan["progress"] = int(completed / total_modules * 100)
 
         scan["all_issues"] = all_issues
+        # CVSS & Compliance enrichment
+        scan["current_module"] = "CVSS & Compliance Analysis"
+        compliance = enrich_issues_with_cvss(all_issues)
+        scan["all_issues"] = compliance.cvss_enriched
+        scan["results"]["compliance"] = {
+            "owasp_coverage": compliance.owasp_coverage,
+            "pci_dss_coverage": compliance.pci_dss_coverage,
+            "compliance_status": compliance.compliance_status,
+            "risk_score": compliance.risk_score,
+            "risk_level": compliance.risk_level,
+        }
+
         scan["summary"] = {
             "total_issues": len(all_issues),
             "by_severity": count_by_severity(all_issues),
             "grade": overall_grade(all_issues),
             "modules_completed": completed,
+            "risk_score": compliance.risk_score,
+            "risk_level": compliance.risk_level,
         }
         scan["status"] = "completed"
         scan["progress"] = 100

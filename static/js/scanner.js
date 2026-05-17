@@ -158,6 +158,7 @@ function renderTabContents(data) {
         <div class="tab-content" id="tab-vulns">${renderVulns(data.results.vulns)}</div>
         <div class="tab-content" id="tab-enterprise">${renderEnterprise(data.results.enterprise)}</div>
         <div class="tab-content" id="tab-threat_intel">${renderThreatIntel(data.results.threat_intel)}</div>
+        <div class="tab-content" id="tab-compliance">${renderCompliance(data.results.compliance, data.all_issues)}</div>
         <div class="tab-content" id="tab-credentials">${renderCredentials(data.credential_tests)}</div>
         <div class="tab-content" id="tab-pricing">${renderPricing(data.agency_pricing)}</div>
     `;
@@ -435,6 +436,85 @@ function renderVulns(vulns) {
     }
 
     return html || '<div class="empty-state"><div class="empty-state-icon">\u2705</div><div class="empty-state-text">No vulnerabilities detected in passive scan.</div></div>';
+}
+
+/* Compliance & CVSS Tab */
+function renderCompliance(comp, issues) {
+    if (!comp) return '<div class="empty-state"><div class="empty-state-text">Compliance analysis not available.</div></div>';
+
+    let html = '';
+    const cs = comp.compliance_status || {};
+    const owasp = cs.owasp || {};
+    const pci = cs.pci_dss || {};
+
+    // Risk + Compliance Summary Cards
+    html += '<div class="summary-grid" style="margin-bottom:24px;">';
+    const riskColor = comp.risk_level==='Critical'?'var(--critical)':comp.risk_level==='High'?'var(--danger)':comp.risk_level==='Medium'?'var(--warning)':'var(--success)';
+    html += `<div class="summary-card"><div class="number" style="font-size:32px;color:${riskColor};">${comp.risk_score}</div><div class="label">Avg CVSS Score</div><div style="font-size:11px;color:${riskColor};margin-top:4px;">${comp.risk_level} Risk</div></div>`;
+    const owaspColor = owasp.status==='FAIL'?'var(--danger)':owasp.status==='WARN'?'var(--warning)':'var(--success)';
+    html += `<div class="summary-card"><div class="number" style="font-size:32px;color:${owaspColor};">${owasp.score||0}%</div><div class="label">OWASP Top 10</div><div style="font-size:11px;color:${owaspColor};margin-top:4px;">${owasp.categories_affected||0}/10 categories affected</div></div>`;
+    const pciColor = pci.status==='FAIL'?'var(--danger)':pci.status==='WARN'?'var(--warning)':'var(--success)';
+    html += `<div class="summary-card"><div class="number" style="font-size:32px;color:${pciColor};">${pci.score||0}%</div><div class="label">PCI DSS v4.0</div><div style="font-size:11px;color:${pciColor};margin-top:4px;">${pci.requirements_affected||0}/${pci.total_checked||14} requirements affected</div></div>`;
+    html += '</div>';
+
+    // CVSS Enriched Issues Table
+    if (issues && issues.length > 0) {
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">CVSS v3.1 Scored Issues</h3>';
+        html += '<table class="detail-table"><tr><th>CVSS</th><th>Severity</th><th>Issue</th><th>OWASP</th><th>PCI DSS</th><th>Vector</th></tr>';
+        for (const issue of issues) {
+            const score = issue.cvss_score || 0;
+            const scoreColor = score>=9?'var(--critical)':score>=7?'var(--danger)':score>=4?'var(--warning)':'var(--info)';
+            const sevClass = `sev-${(issue.severity||'info')}`;
+            html += `<tr>
+                <td><strong style="color:${scoreColor};font-size:16px;">${score}</strong></td>
+                <td><span class="issue-severity ${sevClass}" style="font-size:10px;">${(issue.cvss_severity||issue.severity||'info').toUpperCase()}</span></td>
+                <td style="max-width:250px;">${esc(issue.title||'')}</td>
+                <td style="font-size:11px;color:var(--accent);">${esc(issue.owasp_category||'-')}</td>
+                <td style="font-size:11px;">${(issue.pci_dss_requirements||[]).join(', ')||'-'}</td>
+                <td style="font-size:10px;color:var(--text-muted);max-width:180px;word-break:break-all;">${esc(issue.cvss_vector||'-')}</td>
+            </tr>`;
+        }
+        html += '</table>';
+    }
+
+    // OWASP Top 10 Coverage
+    const owaspCov = comp.owasp_coverage || [];
+    if (owaspCov.length > 0) {
+        html += '<h3 style="margin:24px 0 12px;font-size:16px;">OWASP Top 10 (2021) Coverage</h3>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">';
+        for (const o of owaspCov) {
+            const statusColor = o.status==='FAIL'?'var(--danger)':'var(--success)';
+            const statusBg = o.status==='FAIL'?'rgba(239,68,68,0.08)':'rgba(34,197,94,0.08)';
+            html += `<div style="padding:14px 16px;background:${statusBg};border:1px solid var(--border);border-left:3px solid ${statusColor};border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <strong style="font-size:13px;">${esc(o.code)}</strong>
+                    <span class="tag" style="background:${statusColor};color:#fff;font-size:10px;padding:2px 8px;">${o.status}</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${esc(o.name)}</div>
+                ${o.issues_count>0?`<div style="font-size:11px;color:var(--danger);">${o.issues_count} issue(s) found</div>`:'<div style="font-size:11px;color:var(--success);">No issues detected</div>'}
+            </div>`;
+        }
+        html += '</div>';
+    }
+
+    // PCI DSS Coverage
+    const pciCov = comp.pci_dss_coverage || [];
+    if (pciCov.length > 0) {
+        html += '<h3 style="margin:24px 0 12px;font-size:16px;">PCI DSS v4.0 Requirements</h3>';
+        html += '<table class="detail-table"><tr><th>Req #</th><th>Description</th><th>Status</th><th>Issues</th></tr>';
+        for (const p of pciCov) {
+            const sc = p.status==='FAIL'?'var(--danger)':'var(--success)';
+            html += `<tr>
+                <td><strong>${esc(p.requirement)}</strong></td>
+                <td style="font-size:12px;">${esc(p.description)}</td>
+                <td><span class="tag" style="background:${sc};color:#fff;font-size:10px;padding:2px 8px;">${p.status}</span></td>
+                <td style="font-size:12px;">${p.issues_count>0?`<span style="color:var(--danger);">${p.issues_count}</span>`:'-'}</td>
+            </tr>`;
+        }
+        html += '</table>';
+    }
+
+    return html;
 }
 
 /* Threat Intelligence Tab */
