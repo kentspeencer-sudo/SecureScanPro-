@@ -19,12 +19,14 @@ Open `http://localhost:8000/` in browser.
 
 ```
 SecureScanPro-/
-├── app.py                          # [295 lines] FastAPI main — routes, scan orchestration, grading
+├── app.py                          # [305 lines] FastAPI main — routes, scan orchestration, grading
 ├── main.py                         # [5 lines]   Entry point: `uvicorn app:app`
 ├── pyproject.toml                  # Project metadata & dependencies
 ├── securescan-pro.html             # [~47KB] Standalone single-file scanner (embed anywhere)
 ├── README.md                       # Documentation & setup guide
 ├── PROJECT_TREE.md                 # THIS FILE — architecture reference
+├── SecureScanPro-Implementation-Roadmap.md  # Next steps roadmap: 5 phases, timelines, revenue
+├── SecureScanPro-Competitor-Analysis.md     # Top 10 competitor deep analysis with pricing
 │
 ├── modules/                        # Backend scanning modules (each returns a dataclass)
 │   ├── __init__.py                 # Empty init
@@ -38,20 +40,22 @@ SecureScanPro-/
 │   └── deep_scanner.py             # [450 lines] Authenticated deep scan: API/DB/Admin/Session
 │
 ├── templates/                      # Jinja2 HTML templates
-│   ├── dashboard.html              # [143 lines] Main scanner dashboard UI
-│   ├── authenticated.html          # [260 lines] Credential-gated deep scan page with tabbed results
+│   ├── dashboard.html              # [144 lines] Main scanner dashboard UI (+ pricing nav link)
+│   ├── authenticated.html          # [330 lines] Credential-gated deep scan page with tabbed results
+│   ├── pricing.html                # [520 lines] Professional services & pricing page
 │   ├── embed.html                  # [120 lines] Embeddable widget (iframe/JS)
 │   └── report.html                 # [165 lines] Report viewer page
 │
 └── static/                         # Frontend assets
     ├── css/
-    │   └── style.css               # [628 lines] Dark theme, responsive, severity colors
+    │   ├── style.css               # [628 lines] Dark theme, responsive, severity colors
+    │   └── pricing.css             # [380 lines] Pricing tiers, services grid, comparison table
     └── js/
         ├── scanner.js              # [693 lines] Main frontend logic — scan, render, PDF, email
         └── embed-widget.js         # [24 lines]  Embed widget loader script
 ```
 
-**Total: ~4,300 lines of code across 18 files**
+**Total: ~5,700+ lines of code across 23 files**
 
 ---
 
@@ -100,6 +104,7 @@ User enters URL → dashboard.html
 |-------|--------|-------------|
 | `/` | GET | Dashboard page |
 | `/authenticated` | GET | Credential-gated scan page |
+| `/pricing` | GET | Professional services & pricing page |
 | `/embed` | GET | Embeddable widget |
 | `/report/{scan_id}` | GET | Report viewer |
 | `/api/scan` | POST | Start new scan (body: `{url, scan_types}`) |
@@ -424,12 +429,60 @@ dnspython      — DNS resolution
 
 ---
 
+## New: `templates/pricing.html` — Professional Services & Pricing Page
+
+**Route:** `GET /pricing`
+**CSS:** `static/css/pricing.css` (380 lines)
+
+**Features:**
+- **4 SaaS Tiers:** Free ($0), Pro ($49/mo), Business ($149/mo), Enterprise ($499/mo)
+- **Monthly/Annual toggle:** 40% discount on annual (JS `toggleBilling()`)
+- **16 Professional Services** with market rates ($200-$75,000)
+- **Competitor Comparison Table:** SecureScan Pro vs HostedScan, Detectify, Intruder, Pentest-Tools
+- **Contact Sales Modal:** mailto: integration for enterprise inquiries
+- **Navigation:** Links to Scanner (`/`), Auth Scan (`/authenticated`), Pricing (`/pricing`)
+
+**To modify pricing:**
+- Tiers: Edit `<div class="tier-card">` blocks in `pricing.html`
+- Services: Edit `<div class="service-card">` blocks in `pricing.html`
+- Comparison: Edit `<table class="comparison-table">` in `pricing.html`
+- Styling: Edit `static/css/pricing.css`
+
+---
+
+## Documentation Files (in repo root)
+
+### `SecureScanPro-Implementation-Roadmap.md`
+- **Phase 1:** Professional Services & Pricing (DONE)
+- **Phase 2:** Third-party API integrations (Shodan, NVD CVE, VirusTotal, HIBP, SecurityTrails)
+- **Phase 3:** Advanced scanning (CVSS scoring, compliance mapping, continuous monitoring, subdomain discovery)
+- **Phase 4:** Report & UI (whitelabel branding, executive summary, multi-language)
+- **Phase 5:** Infrastructure (database, user auth, webhooks, CI/CD, rate limiting)
+- Revenue projections: $2,700-$64,000/month
+
+### `SecureScanPro-Competitor-Analysis.md`
+- Top 10 competitors analyzed: Qualys SSL Labs, Mozilla Observatory, Sucuri, HostedScan, Pentest-Tools, ImmuniWeb, Detectify, Intruder.io, SecScanner.app, Nuclei
+- Each competitor: how it works, APIs used internally, report formats, pricing, vs SecureScan Pro
+- Feature comparison matrix
+
+---
+
 ## Notes for AI Models
 
 - **No database** — all scan data in-memory dict (`scans` in app.py). Restarting server clears data.
 - **No authentication** on the scanner itself — anyone with access can scan.
 - **Passive scanning only** — no actual exploitation, safe to run against any site.
-- **Enterprise module** does not require credentials for basic checks. Auth scan page collects credentials but currently doesn't pass them to backend modules.
+- **Deep scanner** accepts credentials (Cookie/Bearer/API Key/Basic Auth) and makes authenticated requests for deeper checks.
 - **PDF** is generated client-side via `window.open()` + `window.print()`, not server-side.
 - **Email** uses `mailto:` protocol, no SMTP integration.
 - **securescan-pro.html** needs `API` variable set to backend URL to work.
+- **Pricing page** is static HTML — no backend payment processing. Contact Sales uses mailto:.
+- **Fly.io deployment:** https://security-scanner-kuaqjqeo.fly.dev/ (requires `fastapi[standard]` in pyproject.toml)
+
+## Next Steps (for new chat sessions)
+
+Read `SecureScanPro-Implementation-Roadmap.md` for the full plan. Quick summary:
+1. **Phase 2 (next):** Add Shodan/NVD/VirusTotal API integrations for deeper scanning
+2. **Phase 3:** CVSS scoring engine + OWASP/PCI DSS compliance mapping
+3. **Phase 4:** Whitelabel branded reports for agencies
+4. **Phase 5:** Database (PostgreSQL) + user authentication + scheduled scans
