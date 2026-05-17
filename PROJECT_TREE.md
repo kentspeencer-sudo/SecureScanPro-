@@ -19,7 +19,7 @@ Open `http://localhost:8000/` in browser.
 
 ```
 SecureScanPro-/
-├── app.py                          # [305 lines] FastAPI main — routes, scan orchestration, grading
+├── app.py                          # [340 lines] FastAPI main — routes, scan orchestration, CVSS enrichment
 ├── main.py                         # [5 lines]   Entry point: `uvicorn app:app`
 ├── pyproject.toml                  # Project metadata & dependencies
 ├── securescan-pro.html             # [~47KB] Standalone single-file scanner (embed anywhere)
@@ -37,10 +37,12 @@ SecureScanPro-/
 │   ├── tech_detector.py            # [220 lines] CMS detection, JS libs, server stack
 │   ├── vuln_checker.py             # [212 lines] Exposed paths, form security, mixed content
 │   ├── enterprise_checker.py       # [365 lines] Enterprise CRM: API/DB/App/Infra security
-│   └── deep_scanner.py             # [450 lines] Authenticated deep scan: API/DB/Admin/Session
+│   ├── deep_scanner.py             # [450 lines] Authenticated deep scan: API/DB/Admin/Session
+│   ├── threat_intel.py             # [420 lines] Threat Intelligence: NVD CVE, Shodan, VirusTotal, HIBP, Safe Browsing, SecurityTrails
+│   └── cvss_engine.py              # [320 lines] CVSS v3.1 scoring + OWASP Top 10 + PCI DSS compliance mapping
 │
 ├── templates/                      # Jinja2 HTML templates
-│   ├── dashboard.html              # [144 lines] Main scanner dashboard UI (+ pricing nav link)
+│   ├── dashboard.html              # [150 lines] Main scanner dashboard UI (+ Compliance + Threat Intel tabs)
 │   ├── authenticated.html          # [330 lines] Credential-gated deep scan page with tabbed results
 │   ├── pricing.html                # [520 lines] Professional services & pricing page
 │   ├── embed.html                  # [120 lines] Embeddable widget (iframe/JS)
@@ -51,11 +53,11 @@ SecureScanPro-/
     │   ├── style.css               # [628 lines] Dark theme, responsive, severity colors
     │   └── pricing.css             # [380 lines] Pricing tiers, services grid, comparison table
     └── js/
-        ├── scanner.js              # [693 lines] Main frontend logic — scan, render, PDF, email
+        ├── scanner.js              # [920 lines] Main frontend logic — scan, render, CVSS, compliance, threat intel, PDF, email
         └── embed-widget.js         # [24 lines]  Embed widget loader script
 ```
 
-**Total: ~5,700+ lines of code across 23 files**
+**Total: ~7,100+ lines of code across 25 files**
 
 ---
 
@@ -75,7 +77,9 @@ User enters URL → dashboard.html
         ├── dns_checker.check_dns(hostname)         → DNSResult
         ├── tech_detector.detect_technologies(url)  → TechResult
         ├── vuln_checker.check_vulnerabilities(url) → VulnResult
-        └── enterprise_checker.check_enterprise_security(url) → EnterpriseResult
+        ├── enterprise_checker.check_enterprise_security(url) → EnterpriseResult
+        ├── threat_intel.run_threat_intel(url, hostname, techs) → ThreatIntelResult
+        └── cvss_engine.enrich_issues_with_cvss(all_issues) → ComplianceResult
         ↓
     scanner.js polls GET /api/scan/{id} every 1s
         ↓
@@ -89,6 +93,8 @@ User enters URL → dashboard.html
         ├── renderTech()        → CMS, JS libs, meta tags
         ├── renderVulns()       → Exposed paths, form issues
         ├── renderEnterprise()  → 4 security layers (API/DB/App/Infra)
+        ├── renderThreatIntel() → CVE table, API status, breach data, subdomains
+        ├── renderCompliance()  → CVSS scores, OWASP grid, PCI DSS table
         ├── renderCredentials() → Auth-required tests list
         └── renderPricing()     → Agency pricing reference
 ```
@@ -121,7 +127,8 @@ User enters URL → dashboard.html
 **Data Flow:**
 - `scans` dict stores all scan data in memory (no database)
 - Each scan has: `scan_id`, `url`, `hostname`, `status`, `progress`, `results`, `summary`, `all_issues`, `credential_tests`, `agency_pricing`
-- Scan types: `["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise"]`
+- Scan types: `["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel"]`
+- After all scans: `enrich_issues_with_cvss(all_issues)` adds CVSS scores, OWASP mapping, PCI DSS mapping
 
 **Grading Logic (line 88-102):**
 - F = any critical issue
@@ -454,8 +461,8 @@ dnspython      — DNS resolution
 
 ### `SecureScanPro-Implementation-Roadmap.md`
 - **Phase 1:** Professional Services & Pricing (DONE)
-- **Phase 2:** Third-party API integrations (Shodan, NVD CVE, VirusTotal, HIBP, SecurityTrails)
-- **Phase 3:** Advanced scanning (CVSS scoring, compliance mapping, continuous monitoring, subdomain discovery)
+- **Phase 2:** Third-party API integrations — NVD CVE, Shodan, VirusTotal, HIBP, SecurityTrails, Safe Browsing (DONE)
+- **Phase 3:** CVSS v3.1 scoring + OWASP Top 10 + PCI DSS compliance mapping (DONE — core complete, monitoring & subdomain pending)
 - **Phase 4:** Report & UI (whitelabel branding, executive summary, multi-language)
 - **Phase 5:** Infrastructure (database, user auth, webhooks, CI/CD, rate limiting)
 - Revenue projections: $2,700-$64,000/month
@@ -479,10 +486,48 @@ dnspython      — DNS resolution
 - **Pricing page** is static HTML — no backend payment processing. Contact Sales uses mailto:.
 - **Fly.io deployment:** https://security-scanner-kuaqjqeo.fly.dev/ (requires `fastapi[standard]` in pyproject.toml)
 
+### `modules/threat_intel.py` — Threat Intelligence (6 APIs)
+
+**Function:** `run_threat_intel(url, hostname, detected_techs) → ThreatIntelResult` (async)
+**Returns:** `ThreatIntelResult(cve_matches, safe_browsing, shodan_data, virustotal_data, breach_data, subdomain_data, all_issues, apis_used, apis_skipped)`
+
+**6 Integrations:**
+| API | Env Variable | Free? | What it does |
+|-----|-------------|-------|--------------|
+| NVD CVE Database | None needed | YES | Matches detected technologies to known CVEs with CVSS scores |
+| Google Safe Browsing | `GOOGLE_SAFE_BROWSING_KEY` | Optional | Checks URL against malware/phishing/social engineering lists |
+| Shodan | `SHODAN_API_KEY` | Optional | IP intelligence — open ports, services, OS, known vulns |
+| VirusTotal | `VIRUSTOTAL_API_KEY` | Optional | Multi-engine domain reputation (70+ antivirus engines) |
+| Have I Been Pwned | `HIBP_API_KEY` | Optional | Data breach history for the domain |
+| SecurityTrails | `SECURITYTRAILS_API_KEY` | Optional | Subdomain discovery and DNS history |
+
+**Graceful Degradation:** If no API key → adds to `apis_skipped`, returns empty result for that API. NVD always works (no key needed).
+
+---
+
+### `modules/cvss_engine.py` — CVSS v3.1 + Compliance
+
+**Function:** `enrich_issues_with_cvss(issues) → ComplianceResult`
+**Returns:** `ComplianceResult(cvss_enriched, owasp_summary, pci_dss_summary, risk_score, risk_level, compliance_status, owasp_coverage, pci_dss_coverage)`
+
+**What it does:**
+1. Maps each vulnerability title to a CVSS v3.1 vector (30+ mappings)
+2. Calculates base score using CVSS v3.1 formula
+3. Maps to OWASP Top 10 (2021) categories
+4. Maps to PCI DSS v4.0 requirements (14 requirements)
+5. Calculates overall risk score (avg CVSS) and risk level
+6. Generates compliance coverage grids for both OWASP and PCI DSS
+
+**CVSS Calculator:** `calculate_cvss_score(vector) → (score, severity)`
+- Uses all 8 base metrics: AV, AC, PR, UI, S, C, I, A
+- Returns score 0.0-10.0 and severity label (None/Low/Medium/High/Critical)
+
+---
+
 ## Next Steps (for new chat sessions)
 
-Read `SecureScanPro-Implementation-Roadmap.md` for the full plan. Quick summary:
-1. **Phase 2 (next):** Add Shodan/NVD/VirusTotal API integrations for deeper scanning
-2. **Phase 3:** CVSS scoring engine + OWASP/PCI DSS compliance mapping
-3. **Phase 4:** Whitelabel branded reports for agencies
+Read `NEXT_STEPS.md` for the complete plan with instructions. Quick summary:
+1. **Phase 3 (remaining):** Continuous monitoring (scheduled scans), passive subdomain discovery
+2. **Phase 4:** Whitelabel branded reports, executive summary, multi-language
+3. **Phase 5:** Database (PostgreSQL), user auth, webhooks, CI/CD, rate limiting
 4. **Phase 5:** Database (PostgreSQL) + user authentication + scheduled scans
