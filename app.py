@@ -295,6 +295,11 @@ async def report_page(request: Request, scan_id: str):
     )
 
 
+@app.get("/pricing", response_class=HTMLResponse)
+async def pricing_page(request: Request):
+    return templates.TemplateResponse(request, "pricing.html")
+
+
 @app.get("/authenticated", response_class=HTMLResponse)
 async def authenticated_page(request: Request):
     return templates.TemplateResponse(request, "authenticated.html")

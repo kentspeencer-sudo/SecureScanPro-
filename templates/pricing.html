@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Professional Services & Pricing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/pricing.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="/" class="logo">
+            <div class="logo-icon">&#x1f6e1;</div>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Security Assessment Platform</div>
+            </div>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">&#x1f50d; Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;border-color:var(--accent);color:var(--accent);">&#x1f4b0; Pricing</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Hero Section -->
+        <section class="pricing-hero">
+            <h1 class="pricing-hero-title">Professional Security Services</h1>
+            <p class="pricing-hero-sub">Enterprise-grade security assessments trusted by agencies and organizations worldwide. Choose a plan or request custom security services.</p>
+        </section>
+
+        <!-- Pricing Tiers -->
+        <section class="pricing-tiers">
+            <div class="tier-toggle">
+                <span class="toggle-label active" id="monthlyLabel">Monthly</span>
+                <button class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
+                    <span class="toggle-knob" id="toggleKnob"></span>
+                </button>
+                <span class="toggle-label" id="annualLabel">Annual <span class="save-badge">Save 40%</span></span>
+            </div>
+
+            <div class="tiers-grid">
+                <!-- Free -->
+                <div class="tier-card">
+                    <div class="tier-badge">Starter</div>
+                    <div class="tier-price">
+                        <span class="tier-currency">$</span>
+                        <span class="tier-amount">0</span>
+                        <span class="tier-period">/forever</span>
+                    </div>
+                    <p class="tier-desc">Perfect for individual developers and quick security checks.</p>
+                    <a href="/" class="tier-btn tier-btn-outline">Start Free Scan</a>
+                    <ul class="tier-features">
+                        <li class="feature-included">5 scans per day</li>
+                        <li class="feature-included">7 security modules</li>
+                        <li class="feature-included">PDF report download</li>
+                        <li class="feature-included">Email report sharing</li>
+                        <li class="feature-included">Enterprise CRM check</li>
+                        <li class="feature-excluded">API access</li>
+                        <li class="feature-excluded">Continuous monitoring</li>
+                        <li class="feature-excluded">Whitelabel reports</li>
+                        <li class="feature-excluded">Priority scanning</li>
+                    </ul>
+                </div>
+
+                <!-- Pro -->
+                <div class="tier-card tier-popular">
+                    <div class="popular-ribbon">Most Popular</div>
+                    <div class="tier-badge tier-badge-pro">Professional</div>
+                    <div class="tier-price">
+                        <span class="tier-currency">$</span>
+                        <span class="tier-amount" data-monthly="49" data-annual="29">49</span>
+                        <span class="tier-period">/month</span>
+                    </div>
+                    <p class="tier-desc">For freelancers and small security agencies running regular assessments.</p>
+                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Professional')">Get Started</button>
+                    <ul class="tier-features">
+                        <li class="feature-included">Unlimited scans</li>
+                        <li class="feature-included">All 8 security modules</li>
+                        <li class="feature-included">Authenticated deep scanning</li>
+                        <li class="feature-included">REST API access</li>
+                        <li class="feature-included">Priority scan queue</li>
+                        <li class="feature-included">Branded PDF reports</li>
+                        <li class="feature-included">CVSS scoring</li>
+                        <li class="feature-excluded">Continuous monitoring</li>
+                        <li class="feature-excluded">Team management</li>
+                    </ul>
+                </div>
+
+                <!-- Business -->
+                <div class="tier-card">
+                    <div class="tier-badge tier-badge-biz">Business</div>
+                    <div class="tier-price">
+                        <span class="tier-currency">$</span>
+                        <span class="tier-amount" data-monthly="149" data-annual="89">149</span>
+                        <span class="tier-period">/month</span>
+                    </div>
+                    <p class="tier-desc">For agencies and SMBs who need continuous monitoring and compliance.</p>
+                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Business')">Get Started</button>
+                    <ul class="tier-features">
+                        <li class="feature-included">Everything in Professional</li>
+                        <li class="feature-included">Continuous monitoring (daily/weekly)</li>
+                        <li class="feature-included">Slack & webhook alerts</li>
+                        <li class="feature-included">Team access (5 members)</li>
+                        <li class="feature-included">Compliance reports (OWASP, PCI DSS)</li>
+                        <li class="feature-included">Historical trend charts</li>
+                        <li class="feature-included">Subdomain discovery</li>
+                        <li class="feature-included">CSV & JSON export</li>
+                        <li class="feature-excluded">SSO / SAML</li>
+                    </ul>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="tier-card">
+                    <div class="tier-badge tier-badge-ent">Enterprise</div>
+                    <div class="tier-price">
+                        <span class="tier-currency">$</span>
+                        <span class="tier-amount" data-monthly="499" data-annual="299">499</span>
+                        <span class="tier-period">/month</span>
+                    </div>
+                    <p class="tier-desc">For large organizations requiring advanced security operations and SLA guarantees.</p>
+                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Enterprise')">Contact Sales</button>
+                    <ul class="tier-features">
+                        <li class="feature-included">Everything in Business</li>
+                        <li class="feature-included">SSO / SAML authentication</li>
+                        <li class="feature-included">Unlimited team members</li>
+                        <li class="feature-included">Dedicated account manager</li>
+                        <li class="feature-included">Custom integrations</li>
+                        <li class="feature-included">On-premise deployment option</li>
+                        <li class="feature-included">SLA guarantee (99.9%)</li>
+                        <li class="feature-included">CI/CD pipeline integration</li>
+                        <li class="feature-included">Priority support (4hr SLA)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Services -->
+        <section class="services-section">
+            <h2 class="section-heading">Professional Security Services</h2>
+            <p class="section-sub">Expert-level security assessments performed by certified professionals. Each service includes a detailed report with findings, risk ratings, and remediation guidance.</p>
+
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f50d;</div>
+                    <h3 class="service-title">Website Security Audit</h3>
+                    <p class="service-desc">Complete vulnerability assessment covering OWASP Top 10, server configuration, SSL, headers, and exposed data. Includes PDF report.</p>
+                    <div class="service-price">$500 — $2,500</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 2-5 business days</span>
+                        <span class="service-level">Beginner-Friendly</span>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f512;</div>
+                    <h3 class="service-title">SSL/TLS Configuration Audit</h3>
+                    <p class="service-desc">Deep analysis of certificate chain, protocol versions, cipher strength, HSTS implementation, and certificate transparency monitoring.</p>
+                    <div class="service-price">$200 — $800</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 1-2 business days</span>
+                        <span class="service-level">Quick Turnaround</span>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card service-card-hot">
+                    <div class="hot-badge">Popular</div>
+                    <div class="service-icon">&#x1f6e1;</div>
+                    <h3 class="service-title">Penetration Testing (Basic)</h3>
+                    <p class="service-desc">OWASP Top 10 focused testing — SQL injection, XSS, CSRF, authentication bypass, IDOR. Automated + manual verification with PoC evidence.</p>
+                    <div class="service-price">$2,000 — $8,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 5-10 business days</span>
+                        <span class="service-level">Professional</span>
+                    </div>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x2694;</div>
+                    <h3 class="service-title">Penetration Testing (Advanced)</h3>
+                    <p class="service-desc">Full-scope manual + automated pentest including business logic flaws, race conditions, privilege escalation, and chained attack scenarios.</p>
+                    <div class="service-price">$5,000 — $25,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 10-20 business days</span>
+                        <span class="service-level">Expert Level</span>
+                    </div>
+                </div>
+
+                <!-- Service 5 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f517;</div>
+                    <h3 class="service-title">API Security Assessment</h3>
+                    <p class="service-desc">REST/GraphQL API testing — authentication, authorization, rate limiting, injection, mass assignment, broken object-level authorization (BOLA).</p>
+                    <div class="service-price">$1,500 — $5,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 3-7 business days</span>
+                        <span class="service-level">API Focused</span>
+                    </div>
+                </div>
+
+                <!-- Service 6 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x2601;</div>
+                    <h3 class="service-title">Cloud Security Audit</h3>
+                    <p class="service-desc">AWS/Azure/GCP misconfiguration check — IAM policies, S3 bucket permissions, network ACLs, encryption at rest, logging & monitoring gaps.</p>
+                    <div class="service-price">$3,000 — $15,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 5-10 business days</span>
+                        <span class="service-level">Cloud Expert</span>
+                    </div>
+                </div>
+
+                <!-- Service 7 -->
+                <div class="service-card service-card-hot">
+                    <div class="hot-badge">In-Demand</div>
+                    <div class="service-icon">&#x1f3e2;</div>
+                    <h3 class="service-title">CRM Security Assessment</h3>
+                    <p class="service-desc">Enterprise CRM security (GoHighLevel, HubSpot, Salesforce) — API security, database hardening, OWASP checks, infrastructure review, integration audit.</p>
+                    <div class="service-price">$2,000 — $10,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 5-10 business days</span>
+                        <span class="service-level">Enterprise CRM</span>
+                    </div>
+                </div>
+
+                <!-- Service 8 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x2696;</div>
+                    <h3 class="service-title">Compliance Assessment</h3>
+                    <p class="service-desc">PCI DSS, SOC 2, HIPAA, GDPR readiness assessment. Gap analysis, policy review, evidence collection, and remediation roadmap.</p>
+                    <div class="service-price">$5,000 — $30,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 15-30 business days</span>
+                        <span class="service-level">Compliance</span>
+                    </div>
+                </div>
+
+                <!-- Service 9 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f6a8;</div>
+                    <h3 class="service-title">Incident Response</h3>
+                    <p class="service-desc">Breach investigation, malware analysis, containment, forensic evidence collection, root cause analysis, and recovery planning.</p>
+                    <div class="service-price">$10,000 — $50,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; Emergency response</span>
+                        <span class="service-level">Critical</span>
+                    </div>
+                </div>
+
+                <!-- Service 10 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f4ca;</div>
+                    <h3 class="service-title">Security Monitoring (Monthly)</h3>
+                    <p class="service-desc">Continuous vulnerability scanning, threat intelligence feeds, real-time alerting (Slack/email/webhook), monthly posture reports.</p>
+                    <div class="service-price">$500 — $3,000<span class="price-period">/mo</span></div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; Ongoing</span>
+                        <span class="service-level">Managed Service</span>
+                    </div>
+                </div>
+
+                <!-- Service 11 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f4bb;</div>
+                    <h3 class="service-title">Code Review & SAST</h3>
+                    <p class="service-desc">Static application security testing — source code analysis for hardcoded secrets, SQL injection, XSS, insecure deserialization, and logic flaws.</p>
+                    <div class="service-price">$2,000 — $10,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 5-10 business days</span>
+                        <span class="service-level">Code Level</span>
+                    </div>
+                </div>
+
+                <!-- Service 12 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f3a3;</div>
+                    <h3 class="service-title">Social Engineering Test</h3>
+                    <p class="service-desc">Phishing simulation, vishing (voice phishing), pretexting attacks, physical security assessment, and employee security awareness training.</p>
+                    <div class="service-price">$3,000 — $12,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 10-15 business days</span>
+                        <span class="service-level">Human Factor</span>
+                    </div>
+                </div>
+
+                <!-- Service 13 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f310;</div>
+                    <h3 class="service-title">Network Security Audit</h3>
+                    <p class="service-desc">Internal and external network assessment — firewall rules, VLAN segmentation, IDS/IPS effectiveness, wireless security, and lateral movement paths.</p>
+                    <div class="service-price">$3,000 — $15,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 7-14 business days</span>
+                        <span class="service-level">Network</span>
+                    </div>
+                </div>
+
+                <!-- Service 14 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f4f1;</div>
+                    <h3 class="service-title">Mobile App Security</h3>
+                    <p class="service-desc">iOS/Android app testing — OWASP Mobile Top 10, certificate pinning, local storage, API communication, reverse engineering, and binary analysis.</p>
+                    <div class="service-price">$3,000 — $15,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 7-14 business days</span>
+                        <span class="service-level">Mobile</span>
+                    </div>
+                </div>
+
+                <!-- Service 15 -->
+                <div class="service-card service-card-hot">
+                    <div class="hot-badge">Premium</div>
+                    <div class="service-icon">&#x1f3af;</div>
+                    <h3 class="service-title">Red Team Assessment</h3>
+                    <p class="service-desc">Full adversary simulation — recon, initial access, persistence, lateral movement, data exfiltration. Tests your entire security posture end-to-end.</p>
+                    <div class="service-price">$15,000 — $75,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 20-40 business days</span>
+                        <span class="service-level">Elite</span>
+                    </div>
+                </div>
+
+                <!-- Service 16 -->
+                <div class="service-card">
+                    <div class="service-icon">&#x1f525;</div>
+                    <h3 class="service-title">WAF Configuration & Tuning</h3>
+                    <p class="service-desc">Web Application Firewall setup, rule tuning, bypass testing, false positive reduction, and integration with CDN (Cloudflare, AWS WAF, Akamai).</p>
+                    <div class="service-price">$1,000 — $5,000</div>
+                    <div class="service-meta">
+                        <span class="service-time">&#x23F1; 3-5 business days</span>
+                        <span class="service-level">Defense</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Competitor Comparison -->
+        <section class="comparison-section">
+            <h2 class="section-heading">How We Compare</h2>
+            <p class="section-sub">See how SecureScan Pro stacks up against leading security platforms.</p>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="comp-us">SecureScan Pro</th>
+                            <th>HostedScan</th>
+                            <th>Detectify</th>
+                            <th>Intruder</th>
+                            <th>Pentest-Tools</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Starting Price</td>
+                            <td class="comp-us"><strong>Free</strong></td>
+                            <td>$49/mo</td>
+                            <td>EUR 90/mo</td>
+                            <td>~$100/mo</td>
+                            <td>~$100/mo</td>
+                        </tr>
+                        <tr>
+                            <td>Free Scans</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> Unlimited</td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                        </tr>
+                        <tr>
+                            <td>SSL/TLS Check</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Security Headers</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> 9+ Headers</td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Port Scanning</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> 26 Ports</td>
+                            <td><span class="check">&#x2713;</span> Nmap</td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Enterprise CRM Security</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> 4 Layers</td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Authenticated Deep Scan</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> Free</td>
+                            <td>Paid Only</td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                        </tr>
+                        <tr>
+                            <td>PDF Reports</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> Color PDF</td>
+                            <td>Paid Only</td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                            <td><span class="check">&#x2713;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Email Report Sharing</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td>Jira/Slack</td>
+                            <td>Slack</td>
+                            <td><span class="cross">&#x2717;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Embeddable Widget</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                        </tr>
+                        <tr>
+                            <td>Self-Hosted Option</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                            <td><span class="cross">&#x2717;</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <h2 class="cta-title">Ready to Secure Your Digital Assets?</h2>
+            <p class="cta-sub">Start with a free scan or contact us for enterprise-grade security services.</p>
+            <div class="cta-buttons">
+                <a href="/" class="tier-btn tier-btn-primary" style="text-decoration:none;padding:16px 40px;font-size:16px;">Start Free Scan</a>
+                <a href="/authenticated" class="tier-btn tier-btn-outline" style="text-decoration:none;padding:16px 40px;font-size:16px;">Authenticated Deep Scan</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeContactModal()">&times;</button>
+            <h3 class="modal-title">&#x1f4e9; Contact Sales</h3>
+            <p style="color:var(--text-secondary);margin-bottom:14px;font-size:13px;" id="contactPlan"></p>
+            <input type="text" class="url-input" id="contactName" placeholder="Your Name" style="margin-bottom:10px;">
+            <input type="email" class="url-input" id="contactEmail" placeholder="your@email.com" style="margin-bottom:10px;">
+            <input type="text" class="url-input" id="contactCompany" placeholder="Company Name" style="margin-bottom:10px;">
+            <textarea class="url-input" id="contactMessage" rows="3" style="margin-bottom:14px;resize:vertical;" placeholder="Tell us about your security needs..."></textarea>
+            <button class="btn-scan" onclick="submitContact()" style="width:100%;justify-content:center;">Send Inquiry</button>
+        </div>
+    </div>
+
+    <script>
+        let isAnnual = false;
+
+        function toggleBilling() {
+            isAnnual = !isAnnual;
+            const knob = document.getElementById('toggleKnob');
+            const monthlyLabel = document.getElementById('monthlyLabel');
+            const annualLabel = document.getElementById('annualLabel');
+
+            if (isAnnual) {
+                knob.style.transform = 'translateX(24px)';
+                monthlyLabel.classList.remove('active');
+                annualLabel.classList.add('active');
+            } else {
+                knob.style.transform = 'translateX(0)';
+                monthlyLabel.classList.add('active');
+                annualLabel.classList.remove('active');
+            }
+
+            document.querySelectorAll('.tier-amount').forEach(el => {
+                const m = el.dataset.monthly;
+                const a = el.dataset.annual;
+                if (m && a) {
+                    el.textContent = isAnnual ? a : m;
+                }
+            });
+        }
+
+        function contactSales(plan) {
+            document.getElementById('contactPlan').textContent = `Interested in the ${plan} plan. Fill in your details and we'll get back to you within 24 hours.`;
+            document.getElementById('contactModal').classList.add('active');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.remove('active');
+        }
+
+        function submitContact() {
+            const name = document.getElementById('contactName').value;
+            const email = document.getElementById('contactEmail').value;
+            const company = document.getElementById('contactCompany').value;
+            const message = document.getElementById('contactMessage').value;
+            const plan = document.getElementById('contactPlan').textContent;
+
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+
+            const subject = encodeURIComponent(`SecureScan Pro - ${plan}`);
+            const body = encodeURIComponent(`Name: ${name}\nCompany: ${company}\nPlan: ${plan}\n\n${message}`);
+            window.open(`mailto:sales@securescanpro.com?subject=${subject}&body=${body}`);
+            closeContactModal();
+            alert('Thank you! Your inquiry has been sent.');
+        }
+    </script>
+</body>
+</html>
