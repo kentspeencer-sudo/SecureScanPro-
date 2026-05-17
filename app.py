@@ -27,6 +27,7 @@ from modules.tech_detector import detect_technologies
 from modules.vuln_checker import check_vulnerabilities
 from modules.enterprise_checker import check_enterprise_security
 from modules.deep_scanner import run_deep_scan
+from modules.threat_intel import run_threat_intel
 
 app = FastAPI(title="Security Scanner API", version="1.0.0")
 
@@ -182,6 +183,28 @@ async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
             completed += 1
             scan["progress"] = int(completed / total_modules * 100)
 
+        if "threat_intel" in scan_types:
+            scan["current_module"] = "Threat Intelligence"
+            detected_techs = []
+            tech_data = scan["results"].get("tech", {})
+            if tech_data:
+                detected_techs = tech_data.get("technologies", [])
+            threat_result = await run_threat_intel(url, hostname, detected_techs)
+            result_dict = {
+                "cve_matches": threat_result.cve_matches,
+                "safe_browsing": threat_result.safe_browsing,
+                "shodan_data": threat_result.shodan_data,
+                "virustotal_data": threat_result.virustotal_data,
+                "breach_data": threat_result.breach_data,
+                "subdomain_data": threat_result.subdomain_data,
+                "apis_used": threat_result.apis_used,
+                "apis_skipped": threat_result.apis_skipped,
+            }
+            scan["results"]["threat_intel"] = result_dict
+            all_issues.extend(threat_result.all_issues)
+            completed += 1
+            scan["progress"] = int(completed / total_modules * 100)
+
         if "deep" in scan_types and scan.get("auth_type") and scan.get("credential"):
             scan["current_module"] = "Authenticated Deep Scan"
             deep_result = await run_deep_scan(
@@ -219,7 +242,7 @@ async def start_scan(req: ScanRequest):
         raise HTTPException(status_code=400, detail="Invalid URL")
 
     scan_id = str(uuid.uuid4())[:8]
-    scan_types = req.scan_types or ["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise"]
+    scan_types = req.scan_types or ["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel"]
 
     scan_data = {
         "scan_id": scan_id,

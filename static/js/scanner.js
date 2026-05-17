@@ -36,6 +36,7 @@ async function startScan() {
         alert('Please select at least one scan type.');
         return;
     }
+    if (!scanTypes.includes('threat_intel')) scanTypes.push('threat_intel');
 
     const btn = document.getElementById('scanBtn');
     btn.disabled = true;
@@ -156,6 +157,7 @@ function renderTabContents(data) {
         <div class="tab-content" id="tab-tech">${renderTech(data.results.tech)}</div>
         <div class="tab-content" id="tab-vulns">${renderVulns(data.results.vulns)}</div>
         <div class="tab-content" id="tab-enterprise">${renderEnterprise(data.results.enterprise)}</div>
+        <div class="tab-content" id="tab-threat_intel">${renderThreatIntel(data.results.threat_intel)}</div>
         <div class="tab-content" id="tab-credentials">${renderCredentials(data.credential_tests)}</div>
         <div class="tab-content" id="tab-pricing">${renderPricing(data.agency_pricing)}</div>
     `;
@@ -433,6 +435,127 @@ function renderVulns(vulns) {
     }
 
     return html || '<div class="empty-state"><div class="empty-state-icon">\u2705</div><div class="empty-state-text">No vulnerabilities detected in passive scan.</div></div>';
+}
+
+/* Threat Intelligence Tab */
+function renderThreatIntel(ti) {
+    if (!ti) return '<div class="empty-state"><div class="empty-state-text">Threat intelligence scan not performed.</div></div>';
+
+    let html = '';
+
+    // APIs used / skipped summary
+    html += '<div class="summary-grid" style="margin-bottom:24px;">';
+    html += `<div class="summary-card"><div class="number" style="font-size:28px;color:var(--success);">${(ti.apis_used||[]).length}</div><div class="label">APIs Connected</div></div>`;
+    html += `<div class="summary-card"><div class="number" style="font-size:28px;color:var(--text-muted);">${(ti.apis_skipped||[]).length}</div><div class="label">APIs Skipped (No Key)</div></div>`;
+    html += `<div class="summary-card"><div class="number" style="font-size:28px;color:var(--danger);">${(ti.cve_matches||[]).length}</div><div class="label">CVEs Found</div></div>`;
+    html += '</div>';
+
+    if (ti.apis_used && ti.apis_used.length > 0) {
+        html += '<div style="margin-bottom:16px;"><strong style="font-size:13px;color:var(--text-muted);">Active APIs:</strong> ';
+        html += ti.apis_used.map(a => `<span class="tag tag-present" style="margin:2px;">${esc(a)}</span>`).join(' ');
+        html += '</div>';
+    }
+    if (ti.apis_skipped && ti.apis_skipped.length > 0) {
+        html += '<div style="margin-bottom:20px;"><strong style="font-size:13px;color:var(--text-muted);">Skipped:</strong> ';
+        html += ti.apis_skipped.map(a => `<span class="tag" style="margin:2px;background:rgba(100,116,139,0.1);color:var(--text-muted);">${esc(a)}</span>`).join(' ');
+        html += '</div>';
+    }
+
+    // CVE Matches
+    if (ti.cve_matches && ti.cve_matches.length > 0) {
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f6a8; Known CVE Vulnerabilities</h3>';
+        html += '<table class="detail-table"><tr><th>CVE ID</th><th>Technology</th><th>CVSS Score</th><th>Severity</th><th>Description</th></tr>';
+        for (const cve of ti.cve_matches) {
+            const sevClass = `sev-${cve.severity||'info'}`;
+            const scoreColor = cve.cvss_score >= 9 ? 'var(--critical)' : cve.cvss_score >= 7 ? 'var(--danger)' : cve.cvss_score >= 4 ? 'var(--warning)' : 'var(--info)';
+            html += `<tr><td><strong style="color:var(--accent);">${esc(cve.cve_id)}</strong></td><td>${esc(cve.technology)} ${cve.version!=='Unknown'?esc(cve.version):''}</td><td><span style="color:${scoreColor};font-weight:700;">${cve.cvss_score||'N/A'}</span></td><td><span class="issue-severity ${sevClass}" style="font-size:10px;">${(cve.severity||'info').toUpperCase()}</span></td><td style="font-size:12px;max-width:300px;">${esc(cve.description)}</td></tr>`;
+        }
+        html += '</table>';
+    }
+
+    // Safe Browsing
+    if (ti.safe_browsing && ti.safe_browsing.status !== 'skipped') {
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f6e1; Google Safe Browsing</h3>';
+        if (ti.safe_browsing.status === 'clean') {
+            html += '<div style="padding:14px 16px;background:var(--bg-input);border-left:3px solid var(--success);border-radius:8px;"><span class="tag tag-present">CLEAN</span> <span style="margin-left:8px;font-size:14px;">No threats detected by Google Safe Browsing</span></div>';
+        } else if (ti.safe_browsing.status === 'threats_found') {
+            for (const t of (ti.safe_browsing.threats||[])) {
+                html += `<div style="padding:14px 16px;background:var(--bg-input);border-left:3px solid var(--danger);border-radius:8px;margin-bottom:8px;"><span class="tag tag-missing">${esc(t.type)}</span> <span style="margin-left:8px;font-size:13px;">Platform: ${esc(t.platform)}</span></div>`;
+            }
+        }
+    }
+
+    // Shodan
+    if (ti.shodan_data && ti.shodan_data.status === 'found') {
+        const s = ti.shodan_data;
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f50d; Shodan Intelligence</h3>';
+        html += `<table class="detail-table"><tr><th>Property</th><th>Value</th></tr>`;
+        html += `<tr><td>IP Address</td><td><strong>${esc(s.ip)}</strong></td></tr>`;
+        html += `<tr><td>Organization</td><td>${esc(s.org)}</td></tr>`;
+        html += `<tr><td>ISP</td><td>${esc(s.isp)}</td></tr>`;
+        html += `<tr><td>Operating System</td><td>${esc(s.os||'Unknown')}</td></tr>`;
+        html += `<tr><td>Open Ports</td><td>${(s.ports||[]).map(p=>`<span class="tag tag-open" style="margin:2px;">${p}</span>`).join(' ')}</td></tr>`;
+        html += `<tr><td>Known Vulns</td><td><span style="color:${s.vulns_count>0?'var(--danger)':'var(--success)'};">${s.vulns_count} CVE(s)</span></td></tr>`;
+        html += '</table>';
+        if (s.services && s.services.length > 0) {
+            html += '<h4 style="margin:16px 0 8px;font-size:14px;">Services Detected</h4>';
+            html += '<table class="detail-table"><tr><th>Port</th><th>Product</th><th>Version</th><th>Banner</th></tr>';
+            for (const svc of s.services) {
+                html += `<tr><td>${svc.port}/${esc(svc.transport)}</td><td>${esc(svc.product||'-')}</td><td>${esc(svc.version||'-')}</td><td style="font-size:11px;max-width:250px;word-break:break-all;">${esc(svc.banner||'-')}</td></tr>`;
+            }
+            html += '</table>';
+        }
+    }
+
+    // VirusTotal
+    if (ti.virustotal_data && ti.virustotal_data.status === 'found') {
+        const vt = ti.virustotal_data;
+        const stats = vt.analysis_stats || {};
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f9ea; VirusTotal Analysis</h3>';
+        html += '<div class="summary-grid" style="margin-bottom:16px;">';
+        html += `<div class="summary-card"><div class="number" style="color:var(--danger);">${stats.malicious||0}</div><div class="label">Malicious</div></div>`;
+        html += `<div class="summary-card"><div class="number" style="color:var(--warning);">${stats.suspicious||0}</div><div class="label">Suspicious</div></div>`;
+        html += `<div class="summary-card"><div class="number" style="color:var(--success);">${stats.harmless||0}</div><div class="label">Clean</div></div>`;
+        html += `<div class="summary-card"><div class="number" style="color:var(--text-muted);">${stats.undetected||0}</div><div class="label">Undetected</div></div>`;
+        html += '</div>';
+        html += `<div style="font-size:13px;color:var(--text-secondary);">Reputation Score: <strong>${vt.reputation_score}</strong></div>`;
+    }
+
+    // Breaches
+    if (ti.breach_data && ti.breach_data.status !== 'skipped') {
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f4a5; Data Breach History</h3>';
+        if (ti.breach_data.status === 'clean') {
+            html += '<div style="padding:14px 16px;background:var(--bg-input);border-left:3px solid var(--success);border-radius:8px;"><span class="tag tag-present">NO BREACHES</span> <span style="margin-left:8px;font-size:14px;">No known data breaches for this domain</span></div>';
+        } else if (ti.breach_data.breaches && ti.breach_data.breaches.length > 0) {
+            html += `<p style="color:var(--danger);font-size:14px;margin-bottom:12px;font-weight:600;">${ti.breach_data.total_breaches} breach(es) found!</p>`;
+            for (const b of ti.breach_data.breaches) {
+                html += `<div style="padding:14px 16px;background:var(--bg-input);border:1px solid var(--border);border-left:3px solid var(--danger);border-radius:8px;margin-bottom:8px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong>${esc(b.title||b.name)}</strong><span style="font-size:12px;color:var(--text-muted);">${esc(b.date)}</span></div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${esc(b.description)}</div>
+                    <div style="font-size:11px;"><span style="color:var(--warning);">${(b.pwn_count||0).toLocaleString()} accounts</span> | ${(b.data_classes||[]).slice(0,5).map(d=>`<span class="tag" style="font-size:10px;padding:1px 6px;background:rgba(100,116,139,0.1);color:var(--text-muted);">${esc(d)}</span>`).join(' ')}</div>
+                </div>`;
+            }
+        }
+    }
+
+    // Subdomains
+    if (ti.subdomain_data && ti.subdomain_data.status === 'found') {
+        const sd = ti.subdomain_data;
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">&#x1f310; Subdomain Discovery</h3>';
+        html += `<p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;"><strong>${sd.total_subdomains}</strong> subdomains found for <strong>${esc(sd.domain)}</strong></p>`;
+        if (sd.risky_subdomains && sd.risky_subdomains.length > 0) {
+            html += '<p style="font-size:13px;color:var(--warning);margin-bottom:8px;">&#x26a0; Potentially sensitive subdomains:</p>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+            for (const r of sd.risky_subdomains) html += `<span class="tag" style="background:var(--warning-bg);color:var(--warning);">${esc(r)}</span>`;
+            html += '</div>';
+        }
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        for (const s of (sd.subdomains||[]).slice(0,30)) html += `<span class="tag tag-tech">${esc(s)}</span>`;
+        if (sd.total_subdomains > 30) html += `<span class="tag" style="background:rgba(100,116,139,0.1);color:var(--text-muted);">+${sd.total_subdomains-30} more</span>`;
+        html += '</div>';
+    }
+
+    return html || '<div class="empty-state"><div class="empty-state-text">No threat intelligence data available.</div></div>';
 }
 
 function renderCredentials(creds) {
