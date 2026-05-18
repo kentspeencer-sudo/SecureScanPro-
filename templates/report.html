@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Report - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        @media print {
+            .header, .export-bar, .btn-scan { display: none !important; }
+            body { background: white; color: #1a1a1a; }
+            .scanner-card, .summary-card, .issue-card, .detail-table { border-color: #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <div class="logo-icon">&#x1f6e1;</div>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Security Report</div>
+            </div>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="btn-embed">&#x2190; Back to Scanner</a>
+        </div>
+    </header>
+
+    <main class="main" id="reportContent">
+        <div class="empty-state" id="loading">
+            <div class="empty-state-icon scanning-pulse">&#x1f50d;</div>
+            <div class="empty-state-text">Loading report...</div>
+        </div>
+    </main>
+
+    <script>
+        const scanId = '{{ scan_id }}';
+        const API_BASE = '';
+
+        async function loadReport() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/scan/${scanId}/report`);
+                if (!resp.ok) {
+                    document.getElementById('loading').innerHTML = '<div class="empty-state-icon">&#x26a0;</div><div class="empty-state-text">Report not ready or not found.</div>';
+                    return;
+                }
+                const data = await resp.json();
+                renderReport(data);
+            } catch (err) {
+                document.getElementById('loading').innerHTML = `<div class="empty-state-text">Error: ${err.message}</div>`;
+            }
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function renderReport(data) {
+            const main = document.getElementById('reportContent');
+            const s = data.summary;
+            const sev = s.by_severity || {};
+
+            let issuesHtml = '';
+            const sorted = [...(data.all_issues || [])].sort((a, b) => {
+                const order = {critical:0,high:1,medium:2,low:3,info:4};
+                return (order[a.severity]??4) - (order[b.severity]??4);
+            });
+
+            for (const i of sorted) {
+                const sevClass = `sev-${i.severity||'info'}`;
+                issuesHtml += `
+                    <div class="issue-card">
+                        <span class="issue-severity ${sevClass}">${(i.severity||'info').toUpperCase()}</span>
+                        <div class="issue-body">
+                            <div class="issue-title">${esc(i.title)}</div>
+                            <div class="issue-desc">${esc(i.description)}</div>
+                            ${i.recommendation ? `<div class="issue-recommendation">${esc(i.recommendation)}</div>` : ''}
+                        </div>
+                    </div>`;
+            }
+
+            let credsHtml = '';
+            for (const c of (data.credential_tests || [])) {
+                credsHtml += `
+                    <div class="cred-item">
+                        <div class="cred-item-title">${esc(c.test)}</div>
+                        <div class="cred-item-desc">${esc(c.description)}</div>
+                        <div class="cred-item-req">\uD83D\uDD11 ${esc(c.requires)}</div>
+                    </div>`;
+            }
+
+            main.innerHTML = `
+                <div class="scanner-card" style="margin-bottom:32px;">
+                    <h1 class="scanner-title">Security Assessment Report</h1>
+                    <p class="scanner-subtitle">
+                        Target: <strong>${esc(data.url)}</strong> | 
+                        Hostname: <strong>${esc(data.hostname)}</strong><br>
+                        Scan Date: ${new Date(data.started_at).toLocaleString()} | 
+                        Completed: ${new Date(data.completed_at).toLocaleString()}
+                    </p>
+                </div>
+
+                <div class="export-bar">
+                    <button class="btn-export btn-export-primary" onclick="exportJSON()">&#x1f4e5; Export JSON</button>
+                    <button class="btn-export" onclick="window.print()">&#x1f5a8; Print</button>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card grade-card grade-${s.grade}">
+                        <div class="number">${s.grade}</div>
+                        <div class="label">Security Grade</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number">${s.total_issues||0}</div>
+                        <div class="label">Total Issues</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number severity-critical">${sev.critical||0}</div>
+                        <div class="label">Critical</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number severity-high">${sev.high||0}</div>
+                        <div class="label">High</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number severity-medium">${sev.medium||0}</div>
+                        <div class="label">Medium</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="number severity-low">${sev.low||0}</div>
+                        <div class="label">Low</div>
+                    </div>
+                </div>
+
+                <h2 style="margin:32px 0 16px;font-size:20px;">All Findings (${sorted.length})</h2>
+                <div class="issue-list">${issuesHtml}</div>
+
+                ${credsHtml ? `
+                    <div class="cred-section" style="margin-top:32px;">
+                        <div class="cred-title">\uD83D\uDD10 Tests Requiring Authentication</div>
+                        <div class="cred-list">${credsHtml}</div>
+                    </div>
+                ` : ''}
+            `;
+
+            window._reportData = data;
+        }
+
+        async function exportJSON() {
+            if (!window._reportData) return;
+            const blob = new Blob([JSON.stringify(window._reportData, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `security-report-${scanId}.json`;
+            a.click();
+        }
+
+        loadReport();
+    </script>
+</body>
+</html>

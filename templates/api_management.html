@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Management - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .api-container { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+        .api-header { margin-bottom: 32px; }
+        .api-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .api-header p { color: var(--text-secondary); font-size: 14px; }
+        .api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .api-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+        .api-card:hover { border-color: var(--accent); }
+        .api-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .api-name { font-size: 16px; font-weight: 600; }
+        .api-status { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .api-status.connected { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+        .api-status.disconnected { background: rgba(100,116,139,0.1); color: var(--text-muted); border: 1px solid var(--text-muted); }
+        .api-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+        .api-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+        .api-stat { text-align: center; padding: 10px; background: var(--bg-input); border-radius: var(--radius-sm); }
+        .api-stat-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+        .api-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+        .api-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .api-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: monospace;
+            outline: none;
+        }
+        .api-input:focus { border-color: var(--accent); }
+        .api-input::placeholder { color: var(--text-muted); }
+        .btn-connect {
+            padding: 10px 20px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-connect:hover { opacity: 0.9; }
+        .btn-disconnect {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-sm);
+            color: var(--danger);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .api-cost { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+        .api-cost strong { color: var(--text-secondary); }
+        .api-details-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-xs);
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .api-details-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .api-details { display: none; margin-top: 12px; padding: 12px; background: var(--bg-input); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); line-height: 1.8; }
+        .api-details.show { display: block; }
+        .cost-summary {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-top: 32px;
+        }
+        .cost-summary h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .cost-table { width: 100%; border-collapse: collapse; }
+        .cost-table th { text-align: left; padding: 10px 12px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        .cost-table td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .cost-table .cost-total { font-weight: 700; color: var(--accent); font-size: 16px; }
+        @media (max-width: 768px) {
+            .api-grid { grid-template-columns: 1fr; }
+            .api-stats { grid-template-columns: repeat(3, 1fr); }
+            .api-input-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">API Management</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/dashboard" class="btn-embed" style="text-decoration:none;" id="navAuth">Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="api-container">
+            <div class="api-header">
+                <h1>API Key Management</h1>
+                <p>Connect third-party security APIs to enhance your scan results. Paste your API key, click Connect, and watch your threat intelligence data expand.</p>
+            </div>
+
+            <div class="api-grid" id="apiGrid"></div>
+
+            <!-- Monthly Cost Summary -->
+            <div class="cost-summary">
+                <h3>Estimated Monthly API Costs</h3>
+                <table class="cost-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Plan</th>
+                            <th>Est. Cost/Month</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="costTableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong>Total Estimated</strong></td>
+                            <td class="cost-total" id="totalCost">$0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/refund">Refund</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    const APIs = [
+        {
+            id: 'shodan', name: 'Shodan', env: 'SHODAN_API_KEY',
+            desc: 'Internet-wide port scanning, OS fingerprinting, and exposed service detection.',
+            placeholder: 'Enter Shodan API key...',
+            cost: '$59/mo (Dev)', free_tier: '100 queries/month free',
+            hits_per_scan: 1, docs: 'https://developer.shodan.io/'
+        },
+        {
+            id: 'virustotal', name: 'VirusTotal', env: 'VIRUSTOTAL_API_KEY',
+            desc: 'Multi-engine domain reputation scanning (70+ antivirus engines).',
+            placeholder: 'Enter VirusTotal API key...',
+            cost: 'Free (500 req/day)', free_tier: '500 requests/day free',
+            hits_per_scan: 1, docs: 'https://developers.virustotal.com/'
+        },
+        {
+            id: 'google_safe', name: 'Google Safe Browsing', env: 'GOOGLE_SAFE_BROWSING_KEY',
+            desc: 'Malware, phishing, and social engineering detection by Google.',
+            placeholder: 'Enter Google Safe Browsing API key...',
+            cost: 'Free (10K req/day)', free_tier: '10,000 requests/day free',
+            hits_per_scan: 1, docs: 'https://developers.google.com/safe-browsing/'
+        },
+        {
+            id: 'hibp', name: 'Have I Been Pwned', env: 'HIBP_API_KEY',
+            desc: 'Data breach history lookup — check if the domain has been in known breaches.',
+            placeholder: 'Enter HIBP API key...',
+            cost: '$3.50/mo', free_tier: 'No free tier',
+            hits_per_scan: 1, docs: 'https://haveibeenpwned.com/API/v3'
+        },
+        {
+            id: 'securitytrails', name: 'SecurityTrails', env: 'SECURITYTRAILS_API_KEY',
+            desc: 'Subdomain discovery, DNS history, and domain intelligence.',
+            placeholder: 'Enter SecurityTrails API key...',
+            cost: 'Free (50 req/mo)', free_tier: '50 requests/month free',
+            hits_per_scan: 1, docs: 'https://securitytrails.com/corp/api'
+        },
+        {
+            id: 'nvd', name: 'NVD CVE Database', env: null,
+            desc: 'NIST National Vulnerability Database — free CVE matching for detected technologies.',
+            placeholder: '',
+            cost: 'Free (No key needed)', free_tier: 'Always free',
+            hits_per_scan: 2, docs: 'https://nvd.nist.gov/developers'
+        },
+    ];
+
+    // Load saved keys from localStorage
+    function getApiKeys() {
+        try { return JSON.parse(localStorage.getItem('ssp_api_keys') || '{}'); } catch { return {}; }
+    }
+    function saveApiKeys(keys) {
+        localStorage.setItem('ssp_api_keys', JSON.stringify(keys));
+    }
+    function getApiUsage() {
+        try { return JSON.parse(localStorage.getItem('ssp_api_usage') || '{}'); } catch { return {}; }
+    }
+
+    function renderApiCards() {
+        const keys = getApiKeys();
+        const usage = getApiUsage();
+        const grid = document.getElementById('apiGrid');
+        let html = '';
+
+        APIs.forEach(api => {
+            const connected = api.env === null || !!keys[api.id];
+            const u = usage[api.id] || { hits: 0, last_used: 'Never' };
+            const statusClass = connected ? 'connected' : 'disconnected';
+            const statusText = connected ? 'Connected' : 'Not Connected';
+
+            html += `<div class="api-card">
+                <div class="api-card-header">
+                    <span class="api-name">${api.name}</span>
+                    <span class="api-status ${statusClass}">${statusText}</span>
+                </div>
+                <p class="api-desc">${api.desc}</p>
+                <div class="api-stats">
+                    <div class="api-stat">
+                        <div class="api-stat-value">${u.hits}</div>
+                        <div class="api-stat-label">Total Hits</div>
+                    </div>
+                    <div class="api-stat">
+                        <div class="api-stat-value">${api.hits_per_scan}</div>
+                        <div class="api-stat-label">Hits/Scan</div>
+                    </div>
+                    <div class="api-stat">
+                        <div class="api-stat-value">${u.last_used !== 'Never' ? new Date(u.last_used).toLocaleDateString() : '-'}</div>
+                        <div class="api-stat-label">Last Used</div>
+                    </div>
+                </div>`;
+
+            if (api.env) {
+                if (connected) {
+                    html += `<div class="api-input-row">
+                        <input class="api-input" type="password" value="${keys[api.id]}" readonly>
+                        <button class="btn-disconnect" onclick="disconnectApi('${api.id}')">Disconnect</button>
+                    </div>`;
+                } else {
+                    html += `<div class="api-input-row">
+                        <input class="api-input" type="text" id="input_${api.id}" placeholder="${api.placeholder}">
+                        <button class="btn-connect" onclick="connectApi('${api.id}')">Connect</button>
+                    </div>`;
+                }
+            }
+
+            html += `<div class="api-cost">Cost: <strong>${api.cost}</strong> | Free tier: ${api.free_tier}</div>
+                <button class="api-details-btn" onclick="toggleDetails('${api.id}')">View Details</button>
+                <div class="api-details" id="details_${api.id}">
+                    <strong>Documentation:</strong> <a href="${api.docs}" target="_blank" style="color:var(--accent);">${api.docs}</a><br>
+                    <strong>Environment Variable:</strong> ${api.env || 'Not required'}<br>
+                    <strong>Hits per scan:</strong> ${api.hits_per_scan}<br>
+                    <strong>Free tier:</strong> ${api.free_tier}
+                </div>
+            </div>`;
+        });
+
+        grid.innerHTML = html;
+        renderCostTable();
+    }
+
+    function connectApi(id) {
+        const input = document.getElementById('input_' + id);
+        const key = input.value.trim();
+        if (!key) { alert('Please enter an API key.'); return; }
+        const keys = getApiKeys();
+        keys[id] = key;
+        saveApiKeys(keys);
+        renderApiCards();
+    }
+
+    function disconnectApi(id) {
+        if (!confirm('Disconnect this API key?')) return;
+        const keys = getApiKeys();
+        delete keys[id];
+        saveApiKeys(keys);
+        renderApiCards();
+    }
+
+    function toggleDetails(id) {
+        document.getElementById('details_' + id).classList.toggle('show');
+    }
+
+    function renderCostTable() {
+        const keys = getApiKeys();
+        const tbody = document.getElementById('costTableBody');
+        let html = '';
+        let total = 0;
+
+        const costs = [
+            { name: 'Shodan', plan: 'Developer', cost: 59, connected: !!keys.shodan },
+            { name: 'VirusTotal', plan: 'Free (500/day)', cost: 0, connected: true },
+            { name: 'Google Safe Browsing', plan: 'Free (10K/day)', cost: 0, connected: !!keys.google_safe },
+            { name: 'Have I Been Pwned', plan: 'Subscription', cost: 3.50, connected: !!keys.hibp },
+            { name: 'SecurityTrails', plan: 'Free (50/mo)', cost: 0, connected: !!keys.securitytrails },
+            { name: 'NVD CVE Database', plan: 'Free (Always)', cost: 0, connected: true },
+        ];
+
+        costs.forEach(c => {
+            const status = c.connected ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--text-muted);">Inactive</span>';
+            html += `<tr><td>${c.name}</td><td>${c.plan}</td><td>$${c.cost.toFixed(2)}</td><td>${status}</td></tr>`;
+            if (c.connected) total += c.cost;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('totalCost').textContent = '$' + total.toFixed(2) + '/mo';
+    }
+
+    renderApiCards();
+    </script>
+</body>
+</html>

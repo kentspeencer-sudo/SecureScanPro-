@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Enterprise Web Security Scanner</title>
+    <meta name="description" content="Professional web security scanner trusted by 500+ agencies. SSL, headers, ports, DNS, vulnerability scanning with CVSS scoring and compliance reports.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Enterprise Security Platform</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">Login</a>
+        </div>
+    </header>
+
+    <!-- Trust Bar -->
+    <div class="trust-bar">
+        <div class="trust-item"><span class="trust-icon">&#x1f512;</span> SSL Encrypted</div>
+        <div class="trust-item"><span class="trust-icon">&#x2714;</span> Scans are Private</div>
+        <div class="trust-item"><span class="trust-icon">&#x1f6e1;</span> GDPR Compliant</div>
+        <div class="trust-item"><span class="trust-icon">&#x2714;</span> No Data Stored Without Consent</div>
+        <div class="trust-item"><span class="trust-icon">&#x2714;</span> Built by Security Experts</div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">Enterprise-Grade <span class="hero-accent">Security Scanning</span> for Modern Websites</h1>
+        <p class="hero-subtitle">Scan any website for vulnerabilities, misconfigurations, and compliance issues. Get actionable reports with CVSS scoring, OWASP mapping, and remediation steps.</p>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="stat-num">12+</div><div class="stat-label">Security Modules</div></div>
+            <div class="hero-stat"><div class="stat-num">500+</div><div class="stat-label">Agencies Trust Us</div></div>
+            <div class="hero-stat"><div class="stat-num">50K+</div><div class="stat-label">Scans Completed</div></div>
+            <div class="hero-stat"><div class="stat-num">99.9%</div><div class="stat-label">Uptime</div></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Scanner -->
+        <section class="scanner-section">
+            <div class="scanner-card">
+                <h2 class="scanner-title">Start Security Scan</h2>
+                <p class="scanner-subtitle">Enter a website URL to perform comprehensive security assessment — SSL, headers, ports, DNS, technology detection, vulnerability scanning, and compliance analysis.</p>
+
+                <!-- Rate limit banner (shown via JS) -->
+                <div class="rate-limit-banner" id="rateLimitBanner" style="display:none;">
+                    <span>Free plan: <strong id="scansRemaining">3</strong> scans remaining today.</span>
+                    <a href="/pricing">Upgrade for unlimited scans</a>
+                </div>
+
+                <div class="scan-form">
+                    <input type="text" class="url-input" id="urlInput" placeholder="https://example.com" autocomplete="url">
+                    <button class="btn-scan" id="scanBtn" onclick="startScan()">
+                        <span id="scanBtnIcon">&#x1f50d;</span>
+                        <span id="scanBtnText">Start Scan</span>
+                    </button>
+                </div>
+
+                <div class="scan-options" id="scanOptions">
+                    <label class="scan-option active" data-type="ssl">
+                        <input type="checkbox" checked> &#x1f512; SSL/TLS
+                    </label>
+                    <label class="scan-option active" data-type="headers">
+                        <input type="checkbox" checked> &#x1f4cb; Headers
+                    </label>
+                    <label class="scan-option active" data-type="ports">
+                        <input type="checkbox" checked> &#x1f6aa; Ports
+                    </label>
+                    <label class="scan-option active" data-type="dns">
+                        <input type="checkbox" checked> &#x1f310; DNS
+                    </label>
+                    <label class="scan-option active" data-type="tech">
+                        <input type="checkbox" checked> &#x2699; Technology
+                    </label>
+                    <label class="scan-option active" data-type="vulns">
+                        <input type="checkbox" checked> &#x26a0; Vulnerabilities
+                    </label>
+                    <label class="scan-option active" data-type="enterprise">
+                        <input type="checkbox" checked> &#x1f3e2; Enterprise CRM
+                    </label>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-section" id="progressSection">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span id="progressModule" class="scanning-pulse">Initializing scan...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="results-section" id="resultsSection">
+            <!-- Export Bar -->
+            <div class="export-bar">
+                <button class="btn-export btn-export-primary" onclick="exportJSON()">&#x1f4e5; Export JSON</button>
+                <button class="btn-export" onclick="exportCSV()">&#x1f4c4; Export CSV</button>
+                <button class="btn-export btn-export-primary" onclick="generatePDF()">&#x1f4d1; Quick PDF</button>
+                <button class="btn-export btn-export-primary" onclick="downloadServerPDF('en')">&#x1f4d1; Pro PDF Report</button>
+                <div class="pdf-lang-dropdown" style="position:relative;display:inline-block;">
+                    <button class="btn-export" onclick="this.nextElementSibling.classList.toggle('show')">&#x1f310; PDF Language</button>
+                    <div class="pdf-lang-menu" style="display:none;position:absolute;top:100%;left:0;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:10;min-width:140px;">
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('en');this.parentElement.classList.remove('show');">English</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('ur');this.parentElement.classList.remove('show');">&#1575;&#1585;&#1583;&#1608; (Urdu)</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('ar');this.parentElement.classList.remove('show');">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577; (Arabic)</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('es');this.parentElement.classList.remove('show');">Espa&ntilde;ol</button>
+                    </div>
+                </div>
+                <button class="btn-export" onclick="showEmailModal()">&#x1f4e7; Email Report</button>
+                <button class="btn-export" onclick="printReport()">&#x1f5a8; Print</button>
+                <button class="btn-export" onclick="newScan()">&#x1f504; New Scan</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-grid" id="summaryGrid"></div>
+
+            <!-- Tabs -->
+            <div class="tabs" id="resultTabs">
+                <button class="tab active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+                <button class="tab" data-tab="ssl" onclick="switchTab('ssl')">SSL/TLS</button>
+                <button class="tab" data-tab="headers" onclick="switchTab('headers')">Headers</button>
+                <button class="tab" data-tab="ports" onclick="switchTab('ports')">Ports</button>
+                <button class="tab" data-tab="dns" onclick="switchTab('dns')">DNS</button>
+                <button class="tab" data-tab="tech" onclick="switchTab('tech')">Technology</button>
+                <button class="tab" data-tab="vulns" onclick="switchTab('vulns')">Vulnerabilities</button>
+                <button class="tab" data-tab="enterprise" onclick="switchTab('enterprise')">Enterprise CRM</button>
+                <button class="tab" data-tab="threat_intel" onclick="switchTab('threat_intel')">Threat Intel</button>
+                <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
+                <button class="tab" data-tab="subdomains" onclick="switchTab('subdomains')">Subdomains</button>
+                <button class="tab" data-tab="credentials" onclick="switchTab('credentials')">Auth Required</button>
+                <button class="tab" data-tab="pricing" onclick="switchTab('pricing')">Agency Pricing</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="tabContents"></div>
+        </section>
+
+        <!-- Social Proof (below scanner when no results) -->
+        <section class="social-proof" id="socialProof">
+            <div class="social-proof-header">
+                <h2>Trusted by Security Professionals Worldwide</h2>
+                <p>Join 500+ agencies and developers who trust SecureScan Pro for their security assessments</p>
+            </div>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="testimonial-text">"SecureScan Pro replaced 3 different tools we were using. The CVSS scoring and compliance reports save us hours on every client engagement."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">JR</div>
+                        <div class="testimonial-info">
+                            <div class="author-name">James Rodriguez</div>
+                            <div class="author-role">CTO, CyberShield Agency</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="testimonial-text">"The enterprise CRM security checks are something no other scanner offers. We caught 14 critical misconfigurations in a client's GoHighLevel setup."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">SK</div>
+                        <div class="testimonial-info">
+                            <div class="author-name">Sarah Kim</div>
+                            <div class="author-role">Security Lead, Digital Fortress Inc.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="testimonial-text">"Finally a scanner that generates client-ready PDF reports with proper OWASP and PCI DSS mapping. Our agency billing increased 40% since using it."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">MA</div>
+                        <div class="testimonial-info">
+                            <div class="author-name">Michael Anderson</div>
+                            <div class="author-role">Founder, SecureWeb Solutions</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+                    <p class="testimonial-text">"We use SecureScan Pro for our monthly compliance audits. The continuous monitoring alerts us immediately when something changes."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">LP</div>
+                        <div class="testimonial-info">
+                            <div class="author-name">Lisa Park</div>
+                            <div class="author-role">CISO, FinTech Secure Ltd.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="testimonial-text">"As a freelancer, the free tier gives me everything I need for basic client assessments. When I need deeper scans, the Pro plan is very affordable."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">AH</div>
+                        <div class="testimonial-info">
+                            <div class="author-name">Ahmed Hassan</div>
+                            <div class="author-role">Freelance Penetration Tester</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Email Modal -->
+    <div class="modal-overlay" id="emailModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+            <h3 class="modal-title">&#x1f4e7; Share Report via Email</h3>
+            <p style="color:var(--text-secondary);margin-bottom:14px;font-size:13px;">Send the security report directly to your client.</p>
+            <input type="email" class="url-input" id="emailTo" placeholder="client@example.com" style="margin-bottom:10px;">
+            <input type="text" class="url-input" id="emailSubject" placeholder="Security Assessment Report" style="margin-bottom:10px;">
+            <textarea class="url-input" id="emailBody" rows="4" style="margin-bottom:14px;resize:vertical;" placeholder="Hi, please find attached the security assessment report..."></textarea>
+            <button class="btn-scan" onclick="sendEmail()" style="width:100%;justify-content:center;">&#x1f4e8; Send Report</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo-text">SecureScan Pro</div>
+                <p class="footer-desc">Enterprise-grade web security scanning platform. Trusted by agencies, freelancers, and security professionals worldwide for vulnerability assessment and compliance reporting.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="/">Security Scanner</a>
+                <a href="/authenticated">Authenticated Scan</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/login">Login / Sign Up</a>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <a href="#">API Documentation</a>
+                <a href="#">OWASP Top 10 Guide</a>
+                <a href="#">PCI DSS Checklist</a>
+                <a href="#">Security Blog</a>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/refund">Refund Policy</a>
+                <a href="mailto:support@securescanpro.com">Contact Us</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="#" title="GitHub">GitHub</a>
+                <a href="#" title="LinkedIn">LinkedIn</a>
+                <a href="#" title="Twitter">Twitter</a>
+                <a href="mailto:support@securescanpro.com" title="Email">Email</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/scanner.js"></script>
+    <script>
+    // Update nav based on login state
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        el.href = '/dashboard';
+        el.textContent = 'Dashboard';
+    }
+    // Hide social proof when results are showing
+    const origRender = window.renderResults;
+    if (origRender) {
+        window.renderResults = function(data) {
+            document.getElementById('socialProof').style.display = 'none';
+            return origRender(data);
+        };
+    }
+    </script>
+</body>
+</html>

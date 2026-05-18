@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Login / Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .auth-container {
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 32px;
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 32px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .auth-tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group label .required {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-input.error {
+            border-color: var(--danger);
+        }
+        .field-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        .field-error.show { display: block; }
+        .btn-auth {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity 0.2s;
+        }
+        .btn-auth:hover { opacity: 0.9; }
+        .btn-auth:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .auth-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .auth-message.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            display: block;
+        }
+        .auth-message.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            display: block;
+        }
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            background: var(--border);
+            overflow: hidden;
+        }
+        .password-strength .bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .auth-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+            .auth-card { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Enterprise Security Platform</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">Account</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                    <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+                </div>
+
+                <div id="authMessage" class="auth-message"></div>
+
+                <!-- Login Form -->
+                <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" class="form-input" id="loginEmail" required placeholder="you@company.com">
+                        <div class="field-error" id="loginEmailError">Please enter a valid email address</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" class="form-input" id="loginPassword" required placeholder="Enter your password" minlength="8">
+                        <div class="field-error" id="loginPasswordError">Password is required</div>
+                    </div>
+                    <button type="submit" class="btn-auth" id="loginBtn">Login</button>
+                    <div class="auth-footer">
+                        Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false;">Sign up here</a>
+                    </div>
+                </form>
+
+                <!-- Signup Form -->
+                <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="signupName" required placeholder="John Doe" minlength="2">
+                        <div class="field-error" id="signupNameError">Full name is required (min 2 characters)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" class="form-input" id="signupEmail" required placeholder="you@company.com">
+                        <div class="field-error" id="signupEmailError">Please enter a valid email address</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Company <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="signupCompany" required placeholder="Company name">
+                            <div class="field-error" id="signupCompanyError">Company name is required</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone <span class="required">*</span></label>
+                            <input type="tel" class="form-input" id="signupPhone" required placeholder="+1 234 567 8900">
+                            <div class="field-error" id="signupPhoneError">Phone number is required</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" class="form-input" id="signupPassword" required placeholder="Min 8 characters, 1 uppercase, 1 number" minlength="8" oninput="checkPasswordStrength(this.value)">
+                        <div class="password-strength"><div class="bar" id="pwStrengthBar"></div></div>
+                        <div class="field-error" id="signupPasswordError">Min 8 chars, 1 uppercase, 1 number required</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password <span class="required">*</span></label>
+                        <input type="password" class="form-input" id="signupConfirm" required placeholder="Re-enter password">
+                        <div class="field-error" id="signupConfirmError">Passwords do not match</div>
+                    </div>
+                    <button type="submit" class="btn-auth" id="signupBtn">Create Account</button>
+                    <div class="auth-footer">
+                        Already have an account? <a href="#" onclick="switchAuthTab('login');return false;">Login here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        if (tab === 'login') {
+            document.querySelectorAll('.auth-tab')[0].classList.add('active');
+            document.getElementById('loginForm').classList.add('active');
+        } else {
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            document.getElementById('signupForm').classList.add('active');
+        }
+        hideMessage();
+    }
+
+    function showMessage(text, type) {
+        const el = document.getElementById('authMessage');
+        el.textContent = text;
+        el.className = 'auth-message ' + type;
+    }
+
+    function hideMessage() {
+        document.getElementById('authMessage').className = 'auth-message';
+    }
+
+    function showFieldError(id) {
+        document.getElementById(id).classList.add('show');
+        document.getElementById(id).previousElementSibling.classList.add('error');
+    }
+
+    function clearFieldErrors() {
+        document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+        document.querySelectorAll('.form-input').forEach(e => e.classList.remove('error'));
+    }
+
+    function checkPasswordStrength(pw) {
+        const bar = document.getElementById('pwStrengthBar');
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (pw.length >= 12) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        const pct = (score / 5) * 100;
+        bar.style.width = pct + '%';
+        bar.style.background = score <= 1 ? '#ef4444' : score <= 2 ? '#f59e0b' : score <= 3 ? '#3b82f6' : '#10b981';
+    }
+
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validatePassword(pw) {
+        return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw);
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        clearFieldErrors();
+        hideMessage();
+
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        let valid = true;
+
+        if (!validateEmail(email)) { showFieldError('loginEmailError'); valid = false; }
+        if (!password) { showFieldError('loginPasswordError'); valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+
+        try {
+            const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password}),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                localStorage.setItem('ssp_token', data.token);
+                localStorage.setItem('ssp_user', JSON.stringify(data.user));
+                showMessage('Login successful! Redirecting...', 'success');
+                setTimeout(() => window.location.href = '/dashboard', 800);
+            } else {
+                showMessage(data.detail || 'Invalid credentials', 'error');
+            }
+        } catch (err) {
+            showMessage('Connection error. Please try again.', 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Login';
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault();
+        clearFieldErrors();
+        hideMessage();
+
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const company = document.getElementById('signupCompany').value.trim();
+        const phone = document.getElementById('signupPhone').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+        let valid = true;
+
+        if (name.length < 2) { showFieldError('signupNameError'); valid = false; }
+        if (!validateEmail(email)) { showFieldError('signupEmailError'); valid = false; }
+        if (!company) { showFieldError('signupCompanyError'); valid = false; }
+        if (!phone) { showFieldError('signupPhoneError'); valid = false; }
+        if (!validatePassword(password)) { showFieldError('signupPasswordError'); valid = false; }
+        if (password !== confirm) { showFieldError('signupConfirmError'); valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('signupBtn');
+        btn.disabled = true;
+        btn.textContent = 'Creating account...';
+
+        try {
+            const resp = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({full_name: name, email, company, phone, password}),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                showMessage('Account created successfully! You can now login.', 'success');
+                setTimeout(() => switchAuthTab('login'), 1500);
+            } else {
+                showMessage(data.detail || 'Signup failed', 'error');
+            }
+        } catch (err) {
+            showMessage('Connection error. Please try again.', 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+    }
+
+    // Check if already logged in
+    if (localStorage.getItem('ssp_token')) {
+        window.location.href = '/dashboard';
+    }
+    </script>
+</body>
+</html>

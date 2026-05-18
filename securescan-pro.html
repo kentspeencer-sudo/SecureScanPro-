@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Enterprise Security Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#1a2235;--card2:#1f2a40;--inp:#0f1625;--bdr:#2d3a50;--bdr2:#3b82f6;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--ac:#3b82f6;--ac2:#2563eb;--acg:rgba(59,130,246,.3);--ok:#10b981;--okbg:rgba(16,185,129,.1);--warn:#f59e0b;--warnbg:rgba(245,158,11,.1);--err:#ef4444;--errbg:rgba(239,68,68,.1);--crit:#dc2626;--critbg:rgba(220,38,38,.15);--info:#6366f1;--infobg:rgba(99,102,241,.1);--grad:linear-gradient(135deg,#3b82f6,#6366f1);--sh:0 4px 24px rgba(0,0,0,.3);--r:12px;--rs:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.6}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-i{width:38px;height:38px;background:var(--grad);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-t{font-size:18px;font-weight:700;color:var(--t1)}
+.logo-s{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px}
+.nav{display:flex;gap:4px}.nav-btn{padding:8px 16px;background:transparent;border:1px solid var(--bdr);color:var(--t2);border-radius:6px;cursor:pointer;font-size:13px;transition:.2s}
+.nav-btn:hover,.nav-btn.active{border-color:var(--ac);color:var(--ac);background:var(--acg)}
+.main{max-width:1400px;margin:0 auto;padding:28px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:32px;box-shadow:var(--sh);position:relative;overflow:hidden;margin-bottom:24px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+.title{font-size:26px;font-weight:700;margin-bottom:6px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{color:var(--t2);font-size:14px;margin-bottom:24px}
+.form{display:flex;gap:10px;margin-bottom:16px}
+.inp{flex:1;padding:12px 18px;background:var(--inp);border:2px solid var(--bdr);border-radius:var(--rs);color:var(--t1);font-size:15px;outline:none;transition:.2s}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}.inp::placeholder{color:var(--t3)}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.btn{padding:12px 28px;background:var(--grad);border:none;border-radius:var(--rs);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--acg)}.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--inp);border:1px solid var(--bdr);border-radius:20px;font-size:12px;color:var(--t2);cursor:pointer;transition:.2s;user-select:none}
+.opt:hover{border-color:var(--ac);color:var(--t1)}.opt.on{border-color:var(--ac);background:var(--acg);color:var(--ac)}.opt input{display:none}
+.prog{display:none;margin-top:20px;animation:fi .3s}.prog.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pbar{background:var(--inp);border-radius:8px;height:7px;overflow:hidden;margin-bottom:10px}
+.pfill{height:100%;background:var(--grad);border-radius:8px;transition:width .5s;position:relative}
+.pfill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shim 2s infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.pinfo{display:flex;justify-content:space-between;color:var(--t2);font-size:13px}
+.pulse{animation:pu 2s infinite}@keyframes pu{0%,100%{opacity:1}50%{opacity:.6}}
+.res{display:none;animation:fi .5s}.res.on{display:block}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+.scard{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;text-align:center;transition:.2s}.scard:hover{transform:translateY(-2px)}
+.scard .num{font-size:32px;font-weight:700;margin-bottom:2px}.scard .lbl{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.gc .num{font-size:44px}.gA .num{color:var(--ok)}.gB .num{color:#22d3ee}.gC .num{color:var(--warn)}.gD .num{color:#f97316}.gF .num{color:var(--err)}
+.sc{color:var(--crit)}.sh{color:var(--err)}.sm{color:var(--warn)}.sl{color:var(--info)}.si{color:var(--t3)}
+.tabs{display:flex;gap:2px;margin-bottom:20px;overflow-x:auto;border-bottom:1px solid var(--bdr)}
+.tab{padding:10px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--t3);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:.2s}
+.tab:hover{color:var(--t1)}.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.tc{display:none;animation:fi .3s}.tc.on{display:block}
+.il{display:flex;flex-direction:column;gap:10px}
+.ic{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:16px 18px;display:flex;gap:14px;align-items:flex-start;transition:.2s}.ic:hover{border-color:var(--bdr2)}
+.isv{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;min-width:60px;text-align:center}
+.isv-critical{background:var(--critbg);color:var(--crit);border:1px solid var(--crit)}.isv-high{background:var(--errbg);color:var(--err);border:1px solid var(--err)}
+.isv-medium{background:var(--warnbg);color:var(--warn);border:1px solid var(--warn)}.isv-low{background:var(--infobg);color:var(--info);border:1px solid var(--info)}
+.isv-info{background:rgba(100,116,139,.1);color:var(--t3);border:1px solid var(--t3)}
+.ib{flex:1}.it{font-weight:600;font-size:14px;margin-bottom:3px}.id{font-size:12px;color:var(--t2);margin-bottom:6px}
+.ir{font-size:11px;color:var(--ok);padding:5px 8px;background:var(--okbg);border-radius:6px;display:inline-block}
+.icat{font-size:10px;color:var(--ac);background:var(--acg);padding:2px 8px;border-radius:4px;margin-left:8px}
+table.dt{width:100%;border-collapse:collapse;margin-bottom:16px}
+.dt th,.dt td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--bdr);font-size:13px}
+.dt th{color:var(--t3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}.dt td{color:var(--t2)}
+.dt tr:hover td{background:var(--card2)}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.tag-ok{background:var(--okbg);color:var(--ok)}.tag-err{background:var(--errbg);color:var(--err)}.tag-tech{background:var(--acg);color:var(--ac)}.tag-open{background:var(--errbg);color:var(--err)}
+.ebar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.ebtn{padding:8px 16px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--t2);transition:.2s;display:flex;align-items:center;gap:5px}
+.ebtn:hover{border-color:var(--ac);color:var(--ac)}.ebtn-p{background:var(--grad);border:none;color:#fff}.ebtn-p:hover{transform:translateY(-1px);box-shadow:0 4px 12px var(--acg)}
+.ent-item{padding:14px 16px;background:var(--inp);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px}
+.ent-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ent-item h4{font-size:14px;font-weight:600}.ent-item .detail{font-size:12px;color:var(--t2);margin-bottom:6px}
+.ent-item .fix{font-size:11px;color:var(--ok)}
+.ent-badge{font-size:10px;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.ent-ok{background:rgba(16,185,129,.15);color:var(--ok)}.ent-vul{background:rgba(239,68,68,.15);color:var(--err)}.ent-unk{background:rgba(245,158,11,.15);color:var(--warn)}
+.price-card{background:var(--inp);border:1px solid var(--bdr);border-radius:8px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.price-card .svc{font-size:14px;font-weight:500}.price-card .amt{font-size:14px;color:var(--ac);font-weight:600}
+.cred-item{padding:14px 16px;background:var(--inp);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--warn)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;justify-content:center;align-items:center;padding:20px}.modal-bg.on{display:flex}
+.modal{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:28px;max-width:550px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:12px}.modal-x{float:right;background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;padding:4px}.modal-x:hover{color:var(--t1)}
+.code{background:var(--inp);border:1px solid var(--bdr);border-radius:var(--rs);padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ac);overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+@media(max-width:768px){.hdr{padding:10px 14px;flex-direction:column;gap:8px}.main{padding:14px}.card{padding:20px}.form{flex-direction:column}.sgrid{grid-template-columns:repeat(2,1fr)}}
+@media print{.hdr,.ebar,.nav,.btn,.tab{display:none!important}body{background:#fff;color:#1a1a1a}.card{border-color:#ddd;box-shadow:none}}
+    </style>
+</head>
+<body>
+<header class="hdr">
+    <a href="#" class="logo" onclick="showPage('scanner')">
+        <div class="logo-i">&#x1f6e1;</div>
+        <div><div class="logo-t">SecureScan Pro</div><div class="logo-s">Enterprise Security Platform</div></div>
+    </a>
+    <div class="nav">
+        <button class="nav-btn active" onclick="showPage('scanner')" id="nav-scanner">&#x1f50d; Scanner</button>
+        <button class="nav-btn" onclick="showPage('auth')" id="nav-auth">&#x1f510; Auth Scan</button>
+        <button class="nav-btn" onclick="showPage('pricing')" id="nav-pricing">&#x1f4b0; Agency Pricing</button>
+        <button class="nav-btn" onclick="showEmbed()" id="nav-embed">&#x2699; Embed</button>
+    </div>
+</header>
+
+<main class="main">
+
+<!-- ═══ PAGE 1: SCANNER ═══ -->
+<div class="page active" id="page-scanner">
+    <div class="card">
+        <h1 class="title">DNA-Level Security Analysis</h1>
+        <p class="sub">Enter any website URL — runs complete security scan: SSL, headers, ports, DNS, technology, vulnerabilities, API security, enterprise CRM checks. No credentials needed.</p>
+        <div class="form">
+            <input type="text" class="inp" id="urlInput" placeholder="https://example.com" autocomplete="url">
+            <button class="btn" id="scanBtn" onclick="startScan()"><span id="si">&#x1f50d;</span><span id="st">Start Full Scan</span></button>
+        </div>
+        <div class="opts" id="scanOpts">
+            <label class="opt on" data-type="ssl"><input type="checkbox" checked>&#x1f512; SSL/TLS</label>
+            <label class="opt on" data-type="headers"><input type="checkbox" checked>&#x1f4cb; Headers</label>
+            <label class="opt on" data-type="ports"><input type="checkbox" checked>&#x1f6aa; Ports</label>
+            <label class="opt on" data-type="dns"><input type="checkbox" checked>&#x1f310; DNS</label>
+            <label class="opt on" data-type="tech"><input type="checkbox" checked>&#x2699; Technology</label>
+            <label class="opt on" data-type="vulns"><input type="checkbox" checked>&#x26a0; Vulnerabilities</label>
+            <label class="opt on" data-type="enterprise"><input type="checkbox" checked>&#x1f3e2; Enterprise CRM</label>
+        </div>
+        <div class="prog" id="prog">
+            <div class="pbar"><div class="pfill" id="pbar" style="width:0%"></div></div>
+            <div class="pinfo"><span id="pmod" class="pulse">Starting...</span><span id="ppct">0%</span></div>
+        </div>
+    </div>
+
+    <div class="res" id="resSection">
+        <div class="ebar">
+            <button class="ebtn ebtn-p" onclick="exportJSON()">&#x1f4e5; Export JSON</button>
+            <button class="ebtn" onclick="exportCSV()">&#x1f4c4; Export CSV</button>
+            <button class="ebtn" onclick="generatePDF()">&#x1f4d1; Download PDF Report</button>
+            <button class="ebtn" onclick="showEmailModal()">&#x1f4e7; Email Report</button>
+            <button class="ebtn" onclick="window.print()">&#x1f5a8; Print</button>
+            <button class="ebtn" onclick="newScan()">&#x1f504; New Scan</button>
+        </div>
+        <div class="sgrid" id="sumGrid"></div>
+        <div class="tabs" id="rTabs"></div>
+        <div id="tabC"></div>
+    </div>
+</div>
+
+<!-- ═══ PAGE 2: AUTH SCAN ═══ -->
+<div class="page" id="page-auth">
+    <div class="card">
+        <h1 class="title">Authenticated Deep Scan</h1>
+        <p class="sub">Provide credentials to unlock deep security testing — admin panels, API endpoints, session management, RBAC, business logic flaws, and more.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+            <div><label style="color:var(--t3);font-size:11px;display:block;margin-bottom:3px;">Target URL</label><input type="text" class="inp" id="authUrl" placeholder="https://example.com" style="width:100%"></div>
+            <div><label style="color:var(--t3);font-size:11px;display:block;margin-bottom:3px;">Auth Type</label>
+                <select class="inp" id="authType" style="width:100%"><option value="cookie">Session Cookie</option><option value="bearer">Bearer / JWT</option><option value="apikey">API Key</option><option value="basic">Basic Auth</option></select>
+            </div>
+        </div>
+        <div style="margin-bottom:16px;"><label style="color:var(--t3);font-size:11px;display:block;margin-bottom:3px;">Credential</label><input type="password" class="inp" id="authVal" placeholder="Paste cookie / token / API key" style="width:100%"></div>
+        <button class="btn" onclick="startAuthScan()" style="width:100%;justify-content:center;">&#x1f510; Start Authenticated Deep Scan</button>
+        <div style="margin-top:16px;padding:12px;background:var(--inp);border:1px solid var(--bdr);border-radius:8px;"><p style="font-size:11px;color:var(--t3);">&#x1f512; Credentials are used only for this scan and never stored. Only scan sites you own or have permission to test.</p></div>
+    </div>
+    <div id="authRes" style="display:none;"></div>
+</div>
+
+<!-- ═══ PAGE 3: PRICING ═══ -->
+<div class="page" id="page-pricing">
+    <div class="card">
+        <h1 class="title">Agency Security Testing Pricing</h1>
+        <p class="sub">Industry-standard pricing for professional security assessments. Use these as reference for your agency billing.</p>
+        <div id="pricingList"></div>
+    </div>
+</div>
+
+</main>
+
+<!-- Email Modal -->
+<div class="modal-bg" id="emailModal">
+    <div class="modal">
+        <button class="modal-x" onclick="closeEmailModal()">&times;</button>
+        <h3>&#x1f4e7; Share Report via Email</h3>
+        <p style="color:var(--t2);font-size:13px;margin-bottom:14px;">Send the security report directly to your client.</p>
+        <input type="email" class="inp" id="emailTo" placeholder="client@example.com" style="width:100%;margin-bottom:10px;">
+        <input type="text" class="inp" id="emailSubject" placeholder="Security Assessment Report" style="width:100%;margin-bottom:10px;">
+        <textarea class="inp" id="emailBody" rows="4" style="width:100%;margin-bottom:14px;resize:vertical;" placeholder="Hi, please find attached the security assessment report for your website..."></textarea>
+        <button class="btn" onclick="sendEmail()" style="width:100%;justify-content:center;">&#x1f4e8; Send Report</button>
+    </div>
+</div>
+
+<!-- Embed Modal -->
+<div class="modal-bg" id="embedModal">
+    <div class="modal">
+        <button class="modal-x" onclick="closeEmbed()">&times;</button>
+        <h3>&#x2699; Embed Security Scanner</h3>
+        <p style="color:var(--t2);font-size:13px;margin-bottom:14px;">Copy this code to embed the scanner in your SEO CMS or website:</p>
+        <div class="code" id="embedCode"></div>
+        <br>
+        <button class="btn" onclick="copyEmbed()" style="width:100%;justify-content:center;">Copy Embed Code</button>
+    </div>
+</div>
+
+<script>
+/* ═══ CONFIG ═══ */
+const API = ''; // Set to your deployed backend URL, e.g. 'https://your-scanner.fly.dev'
+
+let scanData = null, scanId = null, pollTimer = null;
+
+/* ═══ NAV ═══ */
+function showPage(p) {
+    document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+    document.getElementById('page-' + p).classList.add('active');
+    document.getElementById('nav-' + p)?.classList.add('active');
+    if (p === 'pricing') loadPricing();
+}
+
+/* ═══ SCAN OPTIONS ═══ */
+document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => { o.classList.toggle('on'); o.querySelector('input').checked = o.classList.contains('on'); }));
+document.getElementById('urlInput').addEventListener('keydown', e => { if(e.key==='Enter') startScan(); });
+
+/* ═══ START SCAN ═══ */
+async function startScan() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) { document.getElementById('urlInput').focus(); return; }
+    const types = [];
+    document.querySelectorAll('.opt.on').forEach(o => types.push(o.dataset.type));
+    if (!types.length) { alert('Select at least one scan type'); return; }
+
+    document.getElementById('scanBtn').disabled = true;
+    document.getElementById('st').textContent = 'Scanning...';
+    document.getElementById('si').textContent = '\u23F3';
+    document.getElementById('resSection').classList.remove('on');
+    document.getElementById('prog').classList.add('on');
+    document.getElementById('pbar').style.width = '0%';
+    document.getElementById('ppct').textContent = '0%';
+    document.getElementById('pmod').textContent = 'Starting scan...';
+
+    try {
+        const r = await fetch(`${API}/api/scan`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({url, scan_types: types}) });
+        const d = await r.json();
+        scanId = d.scan_id;
+        pollScan();
+    } catch(e) { alert('Scan failed: ' + e.message); resetBtn(); }
+}
+
+function pollScan() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async () => {
+        try {
+            const r = await fetch(`${API}/api/scan/${scanId}`);
+            const d = await r.json();
+            document.getElementById('pbar').style.width = d.progress + '%';
+            document.getElementById('ppct').textContent = d.progress + '%';
+            if (d.current_module) document.getElementById('pmod').textContent = 'Scanning: ' + d.current_module;
+            if (d.status === 'completed') { clearInterval(pollTimer); document.getElementById('prog').classList.remove('on'); resetBtn(); scanData = d; renderResults(d); }
+            else if (d.status === 'error') { clearInterval(pollTimer); document.getElementById('pmod').textContent = 'Error: ' + d.error; resetBtn(); }
+        } catch(e) { console.error(e); }
+    }, 1200);
+}
+
+function resetBtn() { document.getElementById('scanBtn').disabled = false; document.getElementById('st').textContent = 'Start Full Scan'; document.getElementById('si').textContent = '\uD83D\uDD0D'; }
+function newScan() { document.getElementById('resSection').classList.remove('on'); document.getElementById('urlInput').value = ''; document.getElementById('urlInput').focus(); scanData = null; }
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+/* ═══ RENDER RESULTS ═══ */
+function renderResults(data) {
+    const sec = document.getElementById('resSection');
+    sec.classList.add('on');
+    sec.scrollIntoView({behavior:'smooth',block:'start'});
+    renderSummary(data);
+    renderTabs(data);
+}
+
+function renderSummary(d) {
+    const g = document.getElementById('sumGrid');
+    const s = d.summary, sv = s.by_severity || {};
+    g.innerHTML = `
+        <div class="scard gc g${s.grade}"><div class="num">${s.grade}</div><div class="lbl">Security Grade</div></div>
+        <div class="scard"><div class="num">${s.total_issues||0}</div><div class="lbl">Total Issues</div></div>
+        <div class="scard"><div class="num sc">${sv.critical||0}</div><div class="lbl">Critical</div></div>
+        <div class="scard"><div class="num sh">${sv.high||0}</div><div class="lbl">High</div></div>
+        <div class="scard"><div class="num sm">${sv.medium||0}</div><div class="lbl">Medium</div></div>
+        <div class="scard"><div class="num sl">${sv.low||0}</div><div class="lbl">Low</div></div>
+    `;
+}
+
+function renderTabs(data) {
+    const tabDefs = [
+        {id:'overview',label:'Overview'},
+        {id:'ssl',label:'SSL/TLS'},
+        {id:'headers',label:'Headers'},
+        {id:'ports',label:'Ports'},
+        {id:'dns',label:'DNS'},
+        {id:'tech',label:'Technology'},
+        {id:'vulns',label:'Vulnerabilities'},
+        {id:'enterprise',label:'Enterprise CRM'},
+        {id:'credentials',label:'Auth Required'},
+        {id:'pricing',label:'Agency Pricing'},
+    ];
+    document.getElementById('rTabs').innerHTML = tabDefs.map((t,i) => `<button class="tab${i===0?' on':''}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.label}</button>`).join('');
+
+    const c = document.getElementById('tabC');
+    c.innerHTML = `
+        <div class="tc on" id="tc-overview">${renderOverview(data)}</div>
+        <div class="tc" id="tc-ssl">${renderSSL(data.results.ssl)}</div>
+        <div class="tc" id="tc-headers">${renderHeaders(data.results.headers)}</div>
+        <div class="tc" id="tc-ports">${renderPorts(data.results.ports)}</div>
+        <div class="tc" id="tc-dns">${renderDNS(data.results.dns)}</div>
+        <div class="tc" id="tc-tech">${renderTech(data.results.tech)}</div>
+        <div class="tc" id="tc-vulns">${renderVulns(data.results.vulns)}</div>
+        <div class="tc" id="tc-enterprise">${renderEnterprise(data.results.enterprise)}</div>
+        <div class="tc" id="tc-credentials">${renderCreds(data.credential_tests)}</div>
+        <div class="tc" id="tc-pricing">${renderPricingTab(data.agency_pricing)}</div>
+    `;
+}
+
+function switchTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    document.querySelector(`.tab[data-tab="${id}"]`).classList.add('on');
+    document.querySelectorAll('.tc').forEach(c => c.classList.remove('on'));
+    document.getElementById('tc-' + id).classList.add('on');
+}
+
+function issueCard(i) {
+    return `<div class="ic"><span class="isv isv-${i.severity||'info'}">${(i.severity||'info').toUpperCase()}</span><div class="ib"><div class="it">${esc(i.title)}${i.category?`<span class="icat">${esc(i.category)}</span>`:''}</div><div class="id">${esc(i.description)}</div>${i.recommendation?`<div class="ir">${esc(i.recommendation)}</div>`:''}</div></div>`;
+}
+
+function renderOverview(d) {
+    const issues = d.all_issues||[];
+    if(!issues.length) return '<div style="text-align:center;padding:40px;color:var(--t3)"><div style="font-size:40px;margin-bottom:12px">&#x2705;</div>No issues found!</div>';
+    const sorted = [...issues].sort((a,b) => ({critical:0,high:1,medium:2,low:3,info:4}[a.severity]??4)-({critical:0,high:1,medium:2,low:3,info:4}[b.severity]??4));
+    return `<h2 style="font-size:18px;margin-bottom:16px;">All Issues (${issues.length})</h2><div class="il">${sorted.map(issueCard).join('')}</div>`;
+}
+
+function renderSSL(ssl) {
+    if(!ssl) return '<div style="text-align:center;padding:30px;color:var(--t3)">SSL scan not performed.</div>';
+    if(ssl.error&&!ssl.valid) return issueCard({severity:'critical',title:'SSL Check Failed',description:ssl.error});
+    let h = `<table class="dt"><tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Valid</td><td><span class="tag ${ssl.valid?'tag-ok':'tag-err'}">${ssl.valid?'Yes':'No'}</span></td></tr>
+        <tr><td>Issuer</td><td>${esc(ssl.issuer)}</td></tr><tr><td>Subject</td><td>${esc(ssl.subject)}</td></tr>
+        <tr><td>Expires</td><td>${esc(ssl.expires)} (${ssl.days_until_expiry} days)</td></tr>
+        <tr><td>Protocol</td><td>${esc(ssl.protocol)}</td></tr><tr><td>Cipher</td><td>${esc(ssl.cipher)}</td></tr>
+        <tr><td>Key Size</td><td>${ssl.key_size} bits</td></tr>
+        <tr><td>SAN Domains</td><td>${(ssl.san_domains||[]).map(d=>`<span class="tag tag-tech">${esc(d)}</span> `).join('')}</td></tr></table>`;
+    if(ssl.issues?.length) h += `<div class="il">${ssl.issues.map(issueCard).join('')}</div>`;
+    return h;
+}
+
+function renderHeaders(hd) {
+    if(!hd) return '<div style="text-align:center;padding:30px;color:var(--t3)">Header scan not performed.</div>';
+    let h = `<div class="sgrid" style="margin-bottom:20px;"><div class="scard gc g${hd.grade}"><div class="num">${hd.grade}</div><div class="lbl">Score: ${hd.score}/100</div></div></div>
+        <h3 style="margin-bottom:10px;font-size:15px;">Security Headers</h3><table class="dt"><tr><th>Header</th><th>Value</th><th>Status</th></tr>`;
+    for(const[n,v] of Object.entries(hd.present_headers||{})) h += `<tr><td>${esc(n)}</td><td style="max-width:350px;word-break:break-all;font-size:11px;">${esc(v)}</td><td><span class="tag tag-ok">Present</span></td></tr>`;
+    for(const m of (hd.missing_headers||[])) h += `<tr><td>${esc(m.title.replace('Missing ',''))}</td><td style="font-size:11px;color:var(--t3);">${esc(m.description)}</td><td><span class="tag tag-err">Missing</span></td></tr>`;
+    h += '</table>';
+    if(hd.issues?.length) h += `<h3 style="margin:20px 0 10px;font-size:15px;">Issues (${hd.issues.length})</h3><div class="il">${hd.issues.map(issueCard).join('')}</div>`;
+    return h;
+}
+
+function renderPorts(p) {
+    if(!p) return '<div style="text-align:center;padding:30px;color:var(--t3)">Port scan not performed.</div>';
+    let h = `<div class="sgrid" style="margin-bottom:20px;"><div class="scard"><div class="num">${p.total_scanned||0}</div><div class="lbl">Scanned</div></div><div class="scard"><div class="num sh">${(p.open_ports||[]).length}</div><div class="lbl">Open</div></div></div>
+        <p style="margin-bottom:10px;color:var(--t2);">IP: <strong>${esc(p.ip_address||'N/A')}</strong></p>
+        <table class="dt"><tr><th>Port</th><th>Service</th><th>State</th><th>Banner</th></tr>`;
+    for(const op of (p.open_ports||[])) h += `<tr><td><strong>${op.port}</strong></td><td>${esc(op.service)}</td><td><span class="tag tag-open">Open</span></td><td style="font-size:11px;">${esc(op.banner||'-')}</td></tr>`;
+    h += '</table>';
+    if(p.issues?.length) h += `<div class="il" style="margin-top:16px;">${p.issues.map(issueCard).join('')}</div>`;
+    return h;
+}
+
+function renderDNS(dns) {
+    if(!dns) return '<div style="text-align:center;padding:30px;color:var(--t3)">DNS scan not performed.</div>';
+    let h = `<table class="dt"><tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Hostname</td><td>${esc(dns.hostname)}</td></tr>
+        <tr><td>IP Addresses</td><td>${(dns.ip_addresses||[]).map(ip=>`<span class="tag tag-tech">${esc(ip)}</span> `).join('')}</td></tr>
+        <tr><td>Reverse DNS</td><td>${esc(dns.reverse_dns||'N/A')}</td></tr>
+        <tr><td>SPF Record</td><td><span class="tag ${dns.has_spf?'tag-ok':'tag-err'}">${dns.has_spf?'Found':'Missing'}</span></td></tr>
+        <tr><td>DMARC</td><td><span class="tag ${dns.has_dmarc?'tag-ok':'tag-err'}">${dns.has_dmarc?'Found':'Missing'}</span></td></tr>
+        <tr><td>DKIM</td><td><span class="tag ${dns.has_dkim?'tag-ok':'tag-err'}">${dns.has_dkim?'Found':'Missing'}</span></td></tr></table>`;
+    if(dns.ping_result){const p=dns.ping_result;h+=`<h3 style="margin:16px 0 8px;font-size:15px;">Ping</h3><table class="dt"><tr><th>Property</th><th>Value</th></tr><tr><td>Reachable</td><td><span class="tag ${p.reachable?'tag-ok':'tag-err'}">${p.reachable?'Yes':'No'}</span></td></tr>${p.transmitted?`<tr><td>Packets</td><td>${p.transmitted} sent / ${p.received} received (${p.packet_loss} loss)</td></tr>`:''}${p.avg_ms?`<tr><td>Latency</td><td>min:${p.min_ms}ms / avg:${p.avg_ms}ms / max:${p.max_ms}ms</td></tr>`:''}</table>`;}
+    if(dns.records?.length){h+=`<h3 style="margin:16px 0 8px;font-size:15px;">DNS Records (${dns.records.length})</h3><table class="dt"><tr><th>Type</th><th>Name</th><th>Value</th><th>TTL</th></tr>`;for(const r of dns.records) h+=`<tr><td><span class="tag tag-tech">${esc(r.record_type)}</span></td><td>${esc(r.name)}</td><td style="max-width:350px;word-break:break-all;font-size:11px;">${esc(r.value)}</td><td>${r.ttl}</td></tr>`;h+='</table>';}
+    if(dns.issues?.length) h+=`<div class="il" style="margin-top:16px;">${dns.issues.map(issueCard).join('')}</div>`;
+    return h;
+}
+
+function renderTech(tech) {
+    if(!tech) return '<div style="text-align:center;padding:30px;color:var(--t3)">Tech scan not performed.</div>';
+    let h = '';
+    if(tech.cms) h+=`<div class="scard" style="display:inline-block;margin-bottom:16px;"><div class="num" style="font-size:22px;color:var(--ac);">${esc(tech.cms)}</div><div class="lbl">CMS</div></div> `;
+    if(tech.server) h+=`<div class="scard" style="display:inline-block;margin-bottom:16px;"><div class="num" style="font-size:22px;color:var(--ac);">${esc(tech.server)}</div><div class="lbl">Server</div></div> `;
+    if(tech.technologies?.length){h+=`<h3 style="margin:16px 0 8px;font-size:15px;">Technologies</h3><table class="dt"><tr><th>Name</th><th>Category</th><th>Version</th></tr>`;for(const t of tech.technologies) h+=`<tr><td><strong>${esc(t.name)}</strong></td><td><span class="tag tag-tech">${esc(t.category)}</span></td><td>${esc(t.version||'-')}</td></tr>`;h+='</table>';}
+    if(tech.issues?.length) h+=`<div class="il" style="margin-top:16px;">${tech.issues.map(issueCard).join('')}</div>`;
+    return h;
+}
+
+function renderVulns(v) {
+    if(!v) return '<div style="text-align:center;padding:30px;color:var(--t3)">Vuln scan not performed.</div>';
+    let h = '';
+    if(v.exposed_paths?.length){h+=`<h3 style="margin-bottom:10px;font-size:15px;">Exposed Paths (${v.exposed_paths.length})</h3><table class="dt"><tr><th>Path</th><th>Description</th><th>Severity</th></tr>`;for(const p of v.exposed_paths) h+=`<tr><td><strong>${esc(p.path)}</strong></td><td>${esc(p.description)}</td><td><span class="isv isv-${p.severity||'info'}" style="font-size:9px;">${(p.severity||'info').toUpperCase()}</span></td></tr>`;h+='</table>';}
+    if(v.email_addresses?.length) h+=`<h3 style="margin:20px 0 8px;font-size:15px;">Exposed Emails</h3><div style="display:flex;flex-wrap:wrap;gap:6px;">${v.email_addresses.map(e=>`<span class="tag tag-tech">${esc(e)}</span>`).join('')}</div>`;
+    if(v.issues?.length) h+=`<h3 style="margin:20px 0 8px;font-size:15px;">Issues</h3><div class="il">${v.issues.map(issueCard).join('')}</div>`;
+    return h || '<div style="text-align:center;padding:30px;color:var(--t3)">No vulnerabilities detected.</div>';
+}
+
+function renderEnterprise(ent) {
+    if(!ent) return '<div style="text-align:center;padding:30px;color:var(--t3)">Enterprise scan not performed.</div>';
+    let h = '';
+    const sections = [
+        {title:'A. API Security',data:ent.api_security,icon:'&#x1f512;'},
+        {title:'B. Database Security',data:ent.db_security,icon:'&#x1f5c4;'},
+        {title:'C. Application Security (OWASP)',data:ent.app_security,icon:'&#x1f6e1;'},
+        {title:'D. Infrastructure Security',data:ent.infra_security,icon:'&#x2601;'},
+    ];
+    for(const s of sections) {
+        if(!s.data?.length) continue;
+        h += `<h3 style="margin:20px 0 10px;font-size:16px;">${s.icon} ${s.title}</h3>`;
+        for(const item of s.data) {
+            const color = item.status==='protected'||item.status==='active'||item.status==='detected'||item.status==='hidden'||item.status==='configured' ? 'var(--ok)' : item.status==='vulnerable'||item.status==='exposed' ? 'var(--err)' : 'var(--warn)';
+            const badge = item.status==='protected'||item.status==='active'||item.status==='detected'||item.status==='hidden'||item.status==='configured' ? 'ent-ok' : item.status==='vulnerable'||item.status==='exposed' ? 'ent-vul' : 'ent-unk';
+            h += `<div class="ent-item" style="border-left:3px solid ${color};"><div class="ent-item-hdr"><h4>${esc(item.check)}</h4><span class="ent-badge ${badge}">${esc(item.status)}</span></div><div class="detail">${esc(item.detail)}</div><div class="fix">&#x1f527; ${esc(item.solution)}</div>${item.fix_code?`<pre style="margin-top:6px;background:var(--bg);padding:8px;border-radius:6px;font-size:11px;color:var(--ac);overflow-x:auto;">${esc(item.fix_code)}</pre>`:''}</div>`;
+        }
+    }
+    if(ent.api_integrations?.length) {
+        h += `<h3 style="margin:20px 0 10px;font-size:16px;">&#x1f517; Detected API Integrations (GoHighLevel-type)</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">`;
+        for(const api of ent.api_integrations) h += `<span class="tag tag-tech" style="padding:5px 12px;font-size:13px;">${esc(api.name)}</span>`;
+        h += '</div>';
+    }
+    return h;
+}
+
+function renderCreds(creds) {
+    if(!creds?.length) return '<div style="text-align:center;padding:30px;color:var(--t3)">No credential tests available.</div>';
+    let h = `<h3 style="color:var(--warn);margin-bottom:12px;">&#x1f510; Tests Requiring Authentication</h3><p style="color:var(--t2);margin-bottom:16px;font-size:13px;">These deep-scan tests require login credentials. <a href="#" onclick="showPage('auth')" style="color:var(--ac);">Go to Authenticated Scan &rarr;</a></p>`;
+    for(const c of creds) h += `<div class="cred-item"><div style="font-weight:600;font-size:14px;margin-bottom:3px;">${esc(c.test)}</div><div style="font-size:12px;color:var(--t2);margin-bottom:4px;">${esc(c.description)}</div><div style="font-size:11px;color:var(--warn);">&#x1f511; ${esc(c.requires)}</div><div style="font-size:10px;color:var(--t3);margin-top:3px;text-transform:uppercase;">Depth: ${esc(c.depth)}</div></div>`;
+    return h;
+}
+
+function renderPricingTab(pricing) {
+    if(!pricing?.length) return '<div style="text-align:center;padding:30px;color:var(--t3)">Pricing data not available. Run a scan first.</div>';
+    let h = '<h3 style="margin-bottom:16px;font-size:16px;">&#x1f4b0; Agency Security Testing Pricing Guide</h3><p style="color:var(--t2);margin-bottom:16px;font-size:13px;">Industry-standard pricing for the security checks performed. Use these as reference for client billing.</p>';
+    for(const p of pricing) h += `<div class="price-card"><div class="svc">${esc(p.service)}</div><div class="amt">${esc(p.price_range)}</div></div>`;
+    return h;
+}
+
+/* ═══ AUTH SCAN ═══ */
+async function startAuthScan() {
+    const url = document.getElementById('authUrl').value.trim();
+    if(!url) { alert('Enter target URL'); return; }
+    const res = document.getElementById('authRes');
+    res.style.display = 'block';
+    res.innerHTML = '<div class="card"><div class="pulse" style="text-align:center;padding:30px;color:var(--ac);">Running authenticated deep scan...</div></div>';
+    
+    const r = await fetch(`${API}/api/scan`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url, scan_types:['ssl','headers','tech','vulns','enterprise']}) });
+    const d = await r.json();
+    const poll = setInterval(async () => {
+        const r2 = await fetch(`${API}/api/scan/${d.scan_id}`);
+        const d2 = await r2.json();
+        if(d2.status==='completed') { clearInterval(poll); res.innerHTML = '<div class="card">' + renderEnterprise(d2.results.enterprise) + renderOverview(d2) + '</div>'; }
+    }, 1500);
+}
+
+/* ═══ PRICING PAGE ═══ */
+function loadPricing() {
+    const list = document.getElementById('pricingList');
+    const prices = [
+        {svc:'Basic Security Audit',price:'$500 - $1,500'},
+        {svc:'Security Headers Audit',price:'$300 - $800'},
+        {svc:'SSL/TLS Assessment',price:'$200 - $500'},
+        {svc:'Network Port Scan',price:'$500 - $1,200'},
+        {svc:'DNS Security Audit',price:'$300 - $700'},
+        {svc:'API Security Assessment',price:'$2,000 - $5,000'},
+        {svc:'Database Security Audit',price:'$3,000 - $8,000'},
+        {svc:'Application Pentest (OWASP)',price:'$5,000 - $15,000'},
+        {svc:'Infrastructure Security Audit',price:'$4,000 - $12,000'},
+        {svc:'Full Penetration Test',price:'$10,000 - $30,000'},
+        {svc:'Compliance Audit (PCI/GDPR/SOC2)',price:'$8,000 - $25,000'},
+        {svc:'CRM/SaaS Security Assessment',price:'$5,000 - $15,000'},
+        {svc:'API Integration Security Review',price:'$2,000 - $6,000'},
+        {svc:'Incident Response Retainer',price:'$3,000 - $10,000/mo'},
+    ];
+    list.innerHTML = prices.map(p => `<div class="price-card"><div class="svc">${esc(p.svc)}</div><div class="amt">${esc(p.price)}</div></div>`).join('');
+}
+
+/* ═══ EXPORT ═══ */
+async function exportJSON() {
+    if(!scanId) return;
+    const r = await fetch(`${API}/api/scan/${scanId}/report`);
+    const d = await r.json();
+    dl(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}), `security-report-${scanId}.json`);
+}
+
+function exportCSV() {
+    if(!scanData) return;
+    let csv = 'Severity,Title,Description,Category,Recommendation\n';
+    for(const i of (scanData.all_issues||[])) csv += `"${i.severity||''}","${(i.title||'').replace(/"/g,'""')}","${(i.description||'').replace(/"/g,'""')}","${i.category||''}","${(i.recommendation||'').replace(/"/g,'""')}"\n`;
+    dl(new Blob([csv],{type:'text/csv'}), `security-report-${scanId}.csv`);
+}
+
+function dl(blob,name) { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+
+/* ═══ PDF REPORT ═══ */
+function generatePDF() {
+    if(!scanData) return;
+    const s = scanData.summary, sv = s.by_severity||{};
+    const ent = scanData.results.enterprise || {};
+
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Security Report</title>
+    <style>
+    *{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;padding:40px;font-size:13px;line-height:1.6}
+    .hdr{text-align:center;margin-bottom:30px;padding-bottom:20px;border-bottom:3px solid #3b82f6}
+    .hdr h1{font-size:28px;color:#3b82f6;margin-bottom:4px}.hdr p{color:#666;font-size:14px}
+    .grade{text-align:center;font-size:72px;font-weight:800;margin:20px 0;color:${s.grade==='A'?'#10b981':s.grade==='B'?'#06b6d4':s.grade==='C'?'#f59e0b':'#ef4444'}}
+    .stats{display:flex;justify-content:center;gap:30px;margin-bottom:30px;flex-wrap:wrap}
+    .stat{text-align:center;padding:15px 25px;border:2px solid #e5e7eb;border-radius:8px;min-width:100px}
+    .stat .num{font-size:28px;font-weight:700}.stat .lbl{font-size:11px;color:#666;text-transform:uppercase}
+    .stat-c .num{color:#dc2626}.stat-h .num{color:#ef4444}.stat-m .num{color:#f59e0b}.stat-l .num{color:#6366f1}
+    h2{font-size:18px;color:#3b82f6;margin:30px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb}
+    h3{font-size:15px;color:#1a1a1a;margin:20px 0 8px}
+    .issue{padding:12px 14px;margin-bottom:8px;border-radius:6px;border-left:4px solid #ccc;background:#f9fafb}
+    .issue-c{border-left-color:#dc2626;background:#fef2f2}.issue-h{border-left-color:#ef4444;background:#fef2f2}
+    .issue-m{border-left-color:#f59e0b;background:#fffbeb}.issue-l{border-left-color:#6366f1;background:#eef2ff}
+    .issue .sev{font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:2px}
+    .issue .sev-c{color:#dc2626}.issue .sev-h{color:#ef4444}.issue .sev-m{color:#f59e0b}.issue .sev-l{color:#6366f1}
+    .issue .t{font-weight:600;font-size:14px;margin-bottom:2px}.issue .d{font-size:12px;color:#666;margin-bottom:4px}
+    .issue .fix{font-size:11px;color:#10b981;background:#ecfdf5;padding:4px 8px;border-radius:4px;display:inline-block}
+    .issue .cat{font-size:10px;color:#3b82f6;background:#eff6ff;padding:2px 6px;border-radius:3px;margin-left:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:12px}
+    th{background:#f1f5f9;font-weight:600;color:#475569;font-size:11px;text-transform:uppercase}
+    .price-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+    .price-row .amt{color:#3b82f6;font-weight:600}
+    .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+    .tag-ok{background:#dcfce7;color:#16a34a}.tag-err{background:#fee2e2;color:#dc2626}.tag-w{background:#fef3c7;color:#d97706}
+    .footer{margin-top:40px;padding-top:16px;border-top:2px solid #e5e7eb;text-align:center;color:#94a3b8;font-size:11px}
+    @media print{body{padding:20px}}
+    </style></head><body>
+    <div class="hdr"><h1>&#x1f6e1; Security Assessment Report</h1><p>Target: ${esc(scanData.url)} | Generated: ${new Date().toLocaleString()}</p></div>
+    <div class="grade">${s.grade}</div>
+    <div class="stats">
+        <div class="stat"><div class="num">${s.total_issues||0}</div><div class="lbl">Total Issues</div></div>
+        <div class="stat stat-c"><div class="num">${sv.critical||0}</div><div class="lbl">Critical</div></div>
+        <div class="stat stat-h"><div class="num">${sv.high||0}</div><div class="lbl">High</div></div>
+        <div class="stat stat-m"><div class="num">${sv.medium||0}</div><div class="lbl">Medium</div></div>
+        <div class="stat stat-l"><div class="num">${sv.low||0}</div><div class="lbl">Low</div></div>
+    </div>`;
+
+    // Issues
+    const sorted = [...(scanData.all_issues||[])].sort((a,b)=>({critical:0,high:1,medium:2,low:3,info:4}[a.severity]??4)-({critical:0,high:1,medium:2,low:3,info:4}[b.severity]??4));
+    html += `<h2>Security Findings (${sorted.length})</h2>`;
+    for(const i of sorted) {
+        const cls = i.severity==='critical'?'c':i.severity==='high'?'h':i.severity==='medium'?'m':'l';
+        html += `<div class="issue issue-${cls}"><div class="sev sev-${cls}">${(i.severity||'info').toUpperCase()}${i.category?`<span class="cat">${esc(i.category)}</span>`:''}</div><div class="t">${esc(i.title)}</div><div class="d">${esc(i.description)}</div>${i.recommendation?`<div class="fix">Fix: ${esc(i.recommendation)}</div>`:''}</div>`;
+    }
+
+    // Enterprise sections
+    if(ent.api_security?.length||ent.app_security?.length||ent.db_security?.length||ent.infra_security?.length) {
+        const sections = [{t:'A. API Security',d:ent.api_security},{t:'B. Database Security',d:ent.db_security},{t:'C. Application Security',d:ent.app_security},{t:'D. Infrastructure Security',d:ent.infra_security}];
+        html += '<h2>Enterprise CRM Security Assessment</h2>';
+        for(const sec of sections) {
+            if(!sec.d?.length) continue;
+            html += `<h3>${sec.t}</h3>`;
+            for(const item of sec.d) {
+                const st = item.status==='protected'||item.status==='active'||item.status==='detected'||item.status==='hidden'?'ok':item.status==='vulnerable'||item.status==='exposed'?'err':'w';
+                html += `<div style="padding:10px;margin-bottom:6px;border-left:3px solid ${st==='ok'?'#10b981':st==='err'?'#ef4444':'#f59e0b'};background:#f9fafb;border-radius:4px;">
+                    <div style="display:flex;justify-content:space-between;"><strong>${esc(item.check)}</strong><span class="tag tag-${st}">${esc(item.status)}</span></div>
+                    <div style="font-size:12px;color:#666;margin:4px 0;">${esc(item.detail)}</div>
+                    <div style="font-size:11px;color:#10b981;">Fix: ${esc(item.solution)}</div></div>`;
+            }
+        }
+    }
+
+    // Pricing
+    html += '<h2>Agency Pricing Reference</h2>';
+    const prices = scanData.agency_pricing || ent.agency_pricing || [];
+    for(const p of prices) html += `<div class="price-row"><span>${esc(p.service)}</span><span class="amt">${esc(p.price_range)}</span></div>`;
+
+    html += `<div class="footer"><p>Generated by SecureScan Pro | ${new Date().toLocaleString()}</p><p>This report is for authorized security assessment purposes only.</p></div></body></html>`;
+
+    const win = window.open('','_blank');
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+}
+
+/* ═══ EMAIL ═══ */
+function showEmailModal() { document.getElementById('emailModal').classList.add('on'); document.getElementById('emailSubject').value = `Security Report - ${scanData?.url||'Website'}`; }
+function closeEmailModal() { document.getElementById('emailModal').classList.remove('on'); }
+function sendEmail() {
+    const to = document.getElementById('emailTo').value;
+    const subject = document.getElementById('emailSubject').value;
+    const body = document.getElementById('emailBody').value || `Security Assessment Report for ${scanData?.url||'website'}. Grade: ${scanData?.summary?.grade||'N/A'}. Total Issues: ${scanData?.summary?.total_issues||0}.`;
+    window.open(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    closeEmailModal();
+}
+
+/* ═══ EMBED ═══ */
+function showEmbed() {
+    const host = window.location.origin || 'YOUR_SCANNER_URL';
+    document.getElementById('embedCode').textContent = `<!-- SecureScan Pro Widget -->\n<iframe src="${host}/embed" width="100%" height="600" frameborder="0" style="border:1px solid #2d3a50;border-radius:12px;" title="Security Scanner"></iframe>\n\n<!-- Or use JS widget -->\n<script>\n(function(){var s=document.createElement('script');s.src='${host}/static/js/embed-widget.js';s.setAttribute('data-host','${host}');document.head.appendChild(s);})();\n<\/script>`;
+    document.getElementById('embedModal').classList.add('on');
+}
+function closeEmbed() { document.getElementById('embedModal').classList.remove('on'); }
+function copyEmbed() { navigator.clipboard.writeText(document.getElementById('embedCode').textContent).then(()=>alert('Copied!')); }
+</script>
+</body>
+</html>

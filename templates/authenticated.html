@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticated Deep Scan - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Authenticated Deep Scan</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">Login</a>
+        </div>
+    </header>
+    <main class="main">
+        <div class="scanner-card">
+            <h1 class="scanner-title">Authenticated Security Scan</h1>
+            <p class="scanner-subtitle">Provide credentials to unlock deep security testing — API endpoints, database exposure, admin panels, session/token security, RBAC, and more.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div>
+                    <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Target URL</label>
+                    <input type="text" class="url-input" id="authUrl" placeholder="https://example.com" style="width:100%;">
+                </div>
+                <div>
+                    <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Auth Type</label>
+                    <select class="url-input" id="authType" style="width:100%;">
+                        <option value="cookie">Session Cookie</option>
+                        <option value="bearer">Bearer Token / JWT</option>
+                        <option value="apikey">API Key</option>
+                        <option value="basic">Basic Auth (user:pass)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:4px;">Credential Value</label>
+                <input type="password" class="url-input" id="authValue" placeholder="Paste your cookie / token / API key here" style="width:100%;">
+            </div>
+            <button class="btn-scan" id="authScanBtn" onclick="startAuthScan()" style="width:100%;justify-content:center;">
+                &#x1f510; Start Authenticated Deep Scan
+            </button>
+
+            <div style="margin-top:16px;padding:16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;">
+                <h3 style="font-size:14px;color:var(--accent);margin-bottom:8px;">&#x1f50d; What Deep Scan Checks</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-secondary);">
+                    <div>&#x1f512; <strong>API Deep Scan</strong> — Auth bypass, rate limiting, IDOR, endpoint discovery</div>
+                    <div>&#x1f5c4; <strong>Database Audit</strong> — SQL injection, admin panels, data export exposure</div>
+                    <div>&#x1f6e1; <strong>Admin Panel Audit</strong> — RBAC, privilege escalation, sensitive files</div>
+                    <div>&#x1f510; <strong>Session Security</strong> — Cookie flags, token exposure, CORS, cache control</div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;padding:16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;">
+                <h3 style="font-size:14px;color:var(--warning);margin-bottom:8px;">&#x1f512; Security Note</h3>
+                <p style="font-size:12px;color:var(--text-secondary);">Credentials are used only for this scan session and are never stored. All testing is performed on your behalf with your authorization. Only scan websites you own or have written permission to test.</p>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="authProgress" style="margin-top:24px;display:none;">
+            <div class="scanner-card">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="authProgressBar" style="width: 0%"></div>
+                </div>
+                <div class="progress-info" style="margin-top:8px;">
+                    <span id="authProgressModule" class="scanning-pulse">Starting deep scan...</span>
+                    <span id="authProgressPercent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="authResults" style="margin-top:32px;display:none;">
+            <div class="scanner-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <h2 class="scanner-title" style="font-size:20px;margin:0;">Deep Scan Results</h2>
+                    <button class="btn-export btn-export-primary" onclick="generateDeepPDF()" style="font-size:12px;">&#x1f4d1; Download PDF</button>
+                </div>
+                <div id="authSummary"></div>
+                <!-- Tabs -->
+                <div class="tabs" id="deepTabs" style="margin-top:20px;">
+                    <button class="tab active" data-tab="deep-overview" onclick="switchDeepTab('deep-overview')">Overview</button>
+                    <button class="tab" data-tab="deep-api" onclick="switchDeepTab('deep-api')">API Deep Scan</button>
+                    <button class="tab" data-tab="deep-db" onclick="switchDeepTab('deep-db')">Database Audit</button>
+                    <button class="tab" data-tab="deep-admin" onclick="switchDeepTab('deep-admin')">Admin Panel</button>
+                    <button class="tab" data-tab="deep-session" onclick="switchDeepTab('deep-session')">Session Security</button>
+                    <button class="tab" data-tab="deep-enterprise" onclick="switchDeepTab('deep-enterprise')">Enterprise CRM</button>
+                </div>
+                <div id="deepTabContents"></div>
+            </div>
+        </div>
+    </main>
+    <script>
+    let deepScanData = null;
+
+    async function startAuthScan() {
+        const url = document.getElementById('authUrl').value.trim();
+        const authType = document.getElementById('authType').value;
+        const credential = document.getElementById('authValue').value.trim();
+
+        if (!url) { alert('Enter target URL'); return; }
+        if (!credential) { alert('Enter credential value'); return; }
+
+        const btn = document.getElementById('authScanBtn');
+        btn.disabled = true;
+        btn.innerHTML = '&#x23F3; Scanning...';
+
+        document.getElementById('authProgress').style.display = 'block';
+        document.getElementById('authResults').style.display = 'none';
+        document.getElementById('authProgressBar').style.width = '0%';
+        document.getElementById('authProgressPercent').textContent = '0%';
+        document.getElementById('authProgressModule').textContent = 'Starting deep scan...';
+
+        try {
+            const resp = await fetch('/api/scan', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    url,
+                    scan_types: ['ssl','headers','tech','vulns','enterprise','deep'],
+                    auth_type: authType,
+                    credential: credential,
+                }),
+            });
+            const data = await resp.json();
+
+            const poll = setInterval(async () => {
+                const r = await fetch(`/api/scan/${data.scan_id}`);
+                const d = await r.json();
+
+                document.getElementById('authProgressBar').style.width = d.progress + '%';
+                document.getElementById('authProgressPercent').textContent = d.progress + '%';
+                if (d.current_module) {
+                    document.getElementById('authProgressModule').textContent = 'Scanning: ' + d.current_module;
+                }
+
+                if (d.status === 'completed') {
+                    clearInterval(poll);
+                    document.getElementById('authProgress').style.display = 'none';
+                    btn.disabled = false;
+                    btn.innerHTML = '&#x1f510; Start Authenticated Deep Scan';
+                    deepScanData = d;
+                    renderAuthResults(d);
+                } else if (d.status === 'error') {
+                    clearInterval(poll);
+                    document.getElementById('authProgressModule').textContent = 'Error: ' + d.error;
+                    btn.disabled = false;
+                    btn.innerHTML = '&#x1f510; Start Authenticated Deep Scan';
+                }
+            }, 1500);
+        } catch(err) {
+            alert('Scan failed: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = '&#x1f510; Start Authenticated Deep Scan';
+        }
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+    function renderAuthResults(data) {
+        document.getElementById('authResults').style.display = 'block';
+        document.getElementById('authResults').scrollIntoView({ behavior: 'smooth' });
+
+        const s = data.summary;
+        const sev = s.by_severity || {};
+
+        document.getElementById('authSummary').innerHTML = `
+            <div class="summary-grid" style="margin-bottom:24px;">
+                <div class="summary-card grade-card grade-${s.grade}"><div class="number">${s.grade}</div><div class="label">Grade</div></div>
+                <div class="summary-card"><div class="number">${s.total_issues||0}</div><div class="label">Issues</div></div>
+                <div class="summary-card"><div class="number severity-critical">${sev.critical||0}</div><div class="label">Critical</div></div>
+                <div class="summary-card"><div class="number severity-high">${sev.high||0}</div><div class="label">High</div></div>
+                <div class="summary-card"><div class="number severity-medium">${sev.medium||0}</div><div class="label">Medium</div></div>
+                <div class="summary-card"><div class="number severity-low">${sev.low||0}</div><div class="label">Low</div></div>
+            </div>
+        `;
+
+        const deep = data.results.deep || {};
+        const ent = data.results.enterprise || {};
+
+        document.getElementById('deepTabContents').innerHTML = `
+            <div class="tab-content active" id="tab-deep-overview">${renderDeepOverview(data)}</div>
+            <div class="tab-content" id="tab-deep-api">${renderDeepSection('API Deep Scan', deep.api_deep, '&#x1f512;')}</div>
+            <div class="tab-content" id="tab-deep-db">${renderDeepSection('Database Security Audit', deep.db_deep, '&#x1f5c4;')}</div>
+            <div class="tab-content" id="tab-deep-admin">${renderDeepSection('Admin Panel & RBAC Audit', deep.admin_deep, '&#x1f6e1;')}</div>
+            <div class="tab-content" id="tab-deep-session">${renderDeepSection('Session & Token Security', deep.session_deep, '&#x1f510;')}</div>
+            <div class="tab-content" id="tab-deep-enterprise">${renderEntSection(ent)}</div>
+        `;
+    }
+
+    function switchDeepTab(tabId) {
+        document.querySelectorAll('#deepTabs .tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`#deepTabs .tab[data-tab="${tabId}"]`).classList.add('active');
+        document.querySelectorAll('#deepTabContents .tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function renderDeepOverview(data) {
+        const issues = data.all_issues || [];
+        if (issues.length === 0) return '<div class="empty-state"><div class="empty-state-icon">&#x2705;</div><div class="empty-state-text">No issues found! Excellent security posture.</div></div>';
+
+        const sorted = [...issues].sort((a, b) => {
+            const order = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+            return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
+        });
+
+        let html = '<h3 style="margin-bottom:12px;font-size:16px;">All Issues (' + issues.length + ')</h3>';
+        for (const i of sorted) {
+            const sevClass = 'sev-' + (i.severity || 'info');
+            html += `
+                <div class="issue-card">
+                    <span class="issue-severity ${sevClass}">${(i.severity || 'info').toUpperCase()}</span>
+                    <div class="issue-body">
+                        <div class="issue-title">${esc(i.title || '')}</div>
+                        <div class="issue-desc">${esc(i.description || '')}</div>
+                        ${i.category ? `<span style="font-size:10px;color:var(--accent);background:var(--accent)15;padding:2px 6px;border-radius:3px;">${esc(i.category)}</span>` : ''}
+                        ${i.recommendation ? `<div class="issue-recommendation">&#x2705; ${esc(i.recommendation)}</div>` : ''}
+                    </div>
+                </div>`;
+        }
+        return html;
+    }
+
+    function renderDeepSection(title, items, icon) {
+        if (!items || items.length === 0) return '<div class="empty-state"><div class="empty-state-text">No data available for this section.</div></div>';
+
+        let html = `<h3 style="margin-bottom:16px;font-size:16px;">${icon} ${title}</h3>`;
+        for (const item of items) {
+            const color = ['protected','secure','authenticated','active','detected','hidden','configured','no_cookies','no_errors','no_difference','check_required','requires_manual'].includes(item.status) ? 'var(--success)' :
+                          ['vulnerable','exposed'].includes(item.status) ? 'var(--danger)' : 'var(--warning)';
+            const badgeBg = ['protected','secure','authenticated','active'].includes(item.status) ? 'rgba(16,185,129,0.15)' :
+                            ['vulnerable','exposed'].includes(item.status) ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)';
+            html += `
+                <div style="padding:14px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;border-left:3px solid ${color};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <strong style="font-size:14px;">${esc(item.check)}</strong>
+                        <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${badgeBg};color:${color};text-transform:uppercase;font-weight:600;">${esc(item.status)}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">${esc(item.detail)}</div>
+                    <div style="font-size:11px;color:var(--success);">&#x1f527; ${esc(item.solution)}</div>
+                    ${item.fix_code ? `<pre style="margin-top:6px;background:var(--bg-primary);padding:8px;border-radius:6px;font-size:11px;color:var(--accent);overflow-x:auto;white-space:pre-wrap;">${esc(item.fix_code)}</pre>` : ''}
+                </div>`;
+        }
+        return html;
+    }
+
+    function renderEntSection(ent) {
+        if (!ent) return '<div class="empty-state"><div class="empty-state-text">Enterprise scan not performed.</div></div>';
+        let html = '';
+        const sections = [
+            {title: 'A. API Security', data: ent.api_security, icon: '&#x1f512;'},
+            {title: 'B. Database Security', data: ent.db_security, icon: '&#x1f5c4;'},
+            {title: 'C. Application Security (OWASP)', data: ent.app_security, icon: '&#x1f6e1;'},
+            {title: 'D. Infrastructure Security', data: ent.infra_security, icon: '&#x2601;'},
+        ];
+        for (const s of sections) {
+            if (!s.data || !s.data.length) continue;
+            html += renderDeepSection(s.title, s.data, s.icon);
+        }
+        return html || '<div class="empty-state"><div class="empty-state-text">No enterprise data available.</div></div>';
+    }
+
+    function generateDeepPDF() {
+        if (!deepScanData) return;
+        const s = deepScanData.summary, sv = s.by_severity || {};
+        const deep = deepScanData.results.deep || {};
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Deep Scan Report</title>
+        <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;padding:40px;font-size:13px;line-height:1.6}
+        .hdr{text-align:center;margin-bottom:30px;padding-bottom:20px;border-bottom:3px solid #3b82f6}.hdr h1{font-size:28px;color:#3b82f6;margin-bottom:4px}.hdr p{color:#666;font-size:14px}
+        .grade{text-align:center;font-size:72px;font-weight:800;margin:20px 0;color:${s.grade==='A'?'#10b981':s.grade==='B'?'#06b6d4':s.grade==='C'?'#f59e0b':'#ef4444'}}
+        .stats{display:flex;justify-content:center;gap:30px;margin-bottom:30px;flex-wrap:wrap}.stat{text-align:center;padding:15px 25px;border:2px solid #e5e7eb;border-radius:8px;min-width:100px}
+        .stat .num{font-size:28px;font-weight:700}.stat .lbl{font-size:11px;color:#666;text-transform:uppercase}
+        h2{font-size:18px;color:#3b82f6;margin:30px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px}
+        .item{padding:10px;margin-bottom:6px;border-radius:4px;background:#f9fafb;border-left:3px solid #ccc}
+        .item-ok{border-left-color:#10b981}.item-err{border-left-color:#ef4444}.item-warn{border-left-color:#f59e0b}
+        .issue{padding:10px;margin-bottom:8px;border-radius:6px;border-left:4px solid #ccc;background:#f9fafb}
+        .issue-c{border-left-color:#dc2626;background:#fef2f2}.issue-h{border-left-color:#ef4444;background:#fef2f2}.issue-m{border-left-color:#f59e0b;background:#fffbeb}.issue-l{border-left-color:#6366f1;background:#eef2ff}
+        .footer{margin-top:40px;padding-top:16px;border-top:2px solid #e5e7eb;text-align:center;color:#94a3b8;font-size:11px}
+        @media print{body{padding:20px}}</style></head><body>
+        <div class="hdr"><h1>Authenticated Deep Scan Report</h1><p>Target: ${esc(deepScanData.url)} | Generated: ${new Date().toLocaleString()}</p></div>
+        <div class="grade">${s.grade}</div>
+        <div class="stats">
+            <div class="stat"><div class="num">${s.total_issues||0}</div><div class="lbl">Total</div></div>
+            <div class="stat"><div class="num" style="color:#dc2626">${sv.critical||0}</div><div class="lbl">Critical</div></div>
+            <div class="stat"><div class="num" style="color:#ef4444">${sv.high||0}</div><div class="lbl">High</div></div>
+            <div class="stat"><div class="num" style="color:#f59e0b">${sv.medium||0}</div><div class="lbl">Medium</div></div>
+            <div class="stat"><div class="num" style="color:#6366f1">${sv.low||0}</div><div class="lbl">Low</div></div>
+        </div>`;
+
+        const sections = [
+            {t: 'API Deep Scan', d: deep.api_deep},
+            {t: 'Database Security Audit', d: deep.db_deep},
+            {t: 'Admin Panel & RBAC Audit', d: deep.admin_deep},
+            {t: 'Session & Token Security', d: deep.session_deep},
+        ];
+        for (const sec of sections) {
+            if (!sec.d || !sec.d.length) continue;
+            html += `<h2>${sec.t}</h2>`;
+            for (const item of sec.d) {
+                const st = ['protected','secure','authenticated','active'].includes(item.status)?'ok':['vulnerable','exposed'].includes(item.status)?'err':'warn';
+                html += `<div class="item item-${st}"><div style="display:flex;justify-content:space-between;"><strong>${esc(item.check)}</strong><span style="font-size:10px;text-transform:uppercase;color:${st==='ok'?'#10b981':st==='err'?'#ef4444':'#f59e0b'}">${esc(item.status)}</span></div><div style="font-size:12px;color:#666;margin:4px 0;">${esc(item.detail)}</div><div style="font-size:11px;color:#10b981;">Fix: ${esc(item.solution)}</div></div>`;
+            }
+        }
+
+        const sorted = [...(deepScanData.all_issues||[])].sort((a,b)=>({critical:0,high:1,medium:2,low:3,info:4}[a.severity]??4)-({critical:0,high:1,medium:2,low:3,info:4}[b.severity]??4));
+        if (sorted.length) {
+            html += '<h2>All Security Findings (' + sorted.length + ')</h2>';
+            for (const i of sorted) {
+                const cls = i.severity==='critical'?'c':i.severity==='high'?'h':i.severity==='medium'?'m':'l';
+                html += `<div class="issue issue-${cls}"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:${cls==='c'?'#dc2626':cls==='h'?'#ef4444':cls==='m'?'#f59e0b':'#6366f1'}">${(i.severity||'info').toUpperCase()}${i.category?` — ${esc(i.category)}`:''}</div><div style="font-weight:600;font-size:14px;margin:2px 0;">${esc(i.title)}</div><div style="font-size:12px;color:#666;">${esc(i.description)}</div>${i.recommendation?`<div style="font-size:11px;color:#10b981;margin-top:4px;">Fix: ${esc(i.recommendation)}</div>`:''}</div>`;
+            }
+        }
+
+        html += '<div class="footer">Generated by SecureScan Pro — Authenticated Deep Scan Engine</div></body></html>';
+        const win = window.open('','_blank');
+        win.document.write(html);
+        win.document.close();
+        setTimeout(() => { win.print(); }, 500);
+    }
+    </script>
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/refund">Refund</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        if (el) { el.href = '/dashboard'; el.textContent = 'Dashboard'; }
+    }
+    </script>
+</body>
+</html>
