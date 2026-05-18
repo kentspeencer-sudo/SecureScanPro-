@@ -70,27 +70,32 @@
 
 ---
 
+### Phase 4: Report & UI Enhancements (DONE)
+
+**4.1: Whitelabel Branded Reports (DONE)**
+- `modules/pdf_report.py` — ReportLab server-side PDF generator
+- Agency branding: custom company name, colors, tagline in PDF
+- Cover page with severity summary
+- Free plan watermark (removed for whitelabel clients)
+- POST `/api/scan/{id}/pdf` endpoint
+
+**4.2: Report Sections (DONE)**
+- Executive Summary (grade, risk level, key findings, action items)
+- Risk Distribution bar chart (Critical/High/Medium/Low/Info)
+- OWASP + PCI DSS compliance gauges (visual circles)
+- Remediation Priority List (sorted by CVSS score, 30 items max)
+- Detailed Findings with fix code blocks
+
+**4.3: Multi-Language Support (DONE)**
+- 4 languages: English, Urdu, Arabic, Spanish
+- i18n translations in `modules/pdf_report.py` (TRANSLATIONS dict)
+- PDF Language dropdown on dashboard (download in any language)
+- RTL CSS support for Urdu/Arabic layouts
+- GET `/api/languages` endpoint
+
+---
+
 ## Remaining Work
-
-### Phase 4: Report & UI Enhancements
-
-**4.1: Whitelabel Branded Reports**
-- Agency branding: custom logo, company name, colors in PDF reports
-- Executive summary page (non-technical, for C-level)
-- Detailed technical appendix
-- Server-side PDF generation (WeasyPrint or ReportLab)
-
-**4.2: Report Sections to Add**
-- Executive Summary (1-page overview for management)
-- Risk Matrix (visual heatmap)
-- Remediation Priority List (by CVSS score)
-- Compliance Scorecard (OWASP + PCI DSS visual)
-- Timeline (when each issue was first/last seen)
-
-**4.3: Multi-Language Support**
-- English (default), Urdu, Arabic, Spanish
-- i18n framework for all UI text
-- RTL support for Urdu/Arabic
 
 ---
 

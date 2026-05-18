@@ -829,3 +829,11 @@ body {
 .pdf-lang-menu.show { display: block !important; }
 .pdf-lang-menu button:hover { background: rgba(99,102,241,0.1); }
 .pdf-lang-dropdown { vertical-align: top; }
+
+/* RTL Support */
+[dir="rtl"] .header { flex-direction: row-reverse; }
+[dir="rtl"] .logo { flex-direction: row-reverse; }
+[dir="rtl"] .scanner-card { text-align: right; }
+[dir="rtl"] .issue { text-align: right; border-left: none; border-right-width: 4px; border-right-style: solid; }
+[dir="rtl"] .export-bar { direction: rtl; }
+[dir="rtl"] .footer-grid { direction: rtl; }
