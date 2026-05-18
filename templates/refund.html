@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Policy - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Refund Policy</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">Login</a>
+        </div>
+    </header>
+
+    <main class="legal-page">
+        <h1>Refund Policy</h1>
+        <p class="legal-date">Last Updated: May 11, 2026</p>
+
+        <h2>1. 14-Day Money-Back Guarantee</h2>
+        <p>We offer a <strong>14-day money-back guarantee</strong> on all paid plans. If you're not satisfied with SecureScan Pro within 14 days of your initial purchase, contact us for a full refund.</p>
+
+        <h2>2. Eligibility</h2>
+        <ul>
+            <li>Refund requests must be made within 14 days of the initial subscription purchase</li>
+            <li>The guarantee applies to first-time subscribers only</li>
+            <li>Annual plan refunds are prorated after the 14-day period</li>
+        </ul>
+
+        <h2>3. How to Request a Refund</h2>
+        <p>To request a refund:</p>
+        <ul>
+            <li>Email <a href="mailto:billing@securescanpro.com" style="color:var(--accent);">billing@securescanpro.com</a> with your account email and reason for refund</li>
+            <li>We will process your refund within 5-10 business days</li>
+            <li>Refunds are issued to the original payment method</li>
+        </ul>
+
+        <h2>4. Non-Refundable Items</h2>
+        <ul>
+            <li>Professional services (penetration testing, security audits, consulting) once work has begun</li>
+            <li>Custom enterprise agreements after deployment</li>
+            <li>Refund requests made after 14 days (monthly plans)</li>
+        </ul>
+
+        <h2>5. Cancellation</h2>
+        <p>You may cancel your subscription at any time from your dashboard. Upon cancellation:</p>
+        <ul>
+            <li>Your access continues until the end of the current billing period</li>
+            <li>No further charges will be made</li>
+            <li>Your scan history remains accessible for 30 days after cancellation</li>
+            <li>You can resubscribe at any time</li>
+        </ul>
+
+        <h2>6. Annual Plan Refunds</h2>
+        <p>For annual plans cancelled after the 14-day guarantee period:</p>
+        <ul>
+            <li>Refunds are prorated based on remaining months</li>
+            <li>A 10% early termination fee applies</li>
+            <li>Refund = (Remaining months / 12) x Annual price - 10% fee</li>
+        </ul>
+
+        <h2>7. Contact</h2>
+        <p>For billing questions: <a href="mailto:billing@securescanpro.com" style="color:var(--accent);">billing@securescanpro.com</a></p>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/refund">Refund</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        if (el) { el.href = '/dashboard'; el.textContent = 'Dashboard'; }
+    }
+    </script>
+</body>
+</html>

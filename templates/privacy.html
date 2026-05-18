@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - SecureScan Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Privacy Policy</div>
+            </div>
+        </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">Login</a>
+        </div>
+    </header>
+
+    <main class="legal-page">
+        <h1>Privacy Policy</h1>
+        <p class="legal-date">Last Updated: May 11, 2026</p>
+
+        <h2>1. Information We Collect</h2>
+        <p>When you use SecureScan Pro, we collect the following information:</p>
+        <ul>
+            <li><strong>Account Information:</strong> Name, email address, company name, and phone number when you create an account.</li>
+            <li><strong>Scan Data:</strong> URLs you submit for scanning and the resulting security assessment data.</li>
+            <li><strong>Usage Data:</strong> Pages visited, features used, scan frequency, and browser type for analytics purposes.</li>
+            <li><strong>Payment Information:</strong> Processed securely through our payment processor (Stripe). We do not store credit card numbers.</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <ul>
+            <li>To provide and improve our security scanning services</li>
+            <li>To generate security reports and compliance documents</li>
+            <li>To send scan completion notifications and monitoring alerts</li>
+            <li>To process payments and manage subscriptions</li>
+            <li>To communicate important service updates</li>
+        </ul>
+
+        <h2>3. Data Security</h2>
+        <p>We implement industry-standard security measures including:</p>
+        <ul>
+            <li>AES-256 encryption for data at rest</li>
+            <li>TLS 1.3 encryption for data in transit</li>
+            <li>PBKDF2-HMAC-SHA256 password hashing with unique salts</li>
+            <li>Regular security audits and penetration testing</li>
+            <li>Scan results are automatically deleted after 90 days unless saved by authenticated users</li>
+        </ul>
+
+        <h2>4. Scan Privacy</h2>
+        <p>All security scans are performed privately. We do not:</p>
+        <ul>
+            <li>Share scan results with third parties</li>
+            <li>Publish or index scan data</li>
+            <li>Use scan data for marketing purposes</li>
+            <li>Store credentials submitted for authenticated scans beyond the scan session</li>
+        </ul>
+
+        <h2>5. Third-Party Services</h2>
+        <p>We may use third-party APIs (NVD, Shodan, VirusTotal) to enhance scan results. Only the target URL or hostname is shared with these services, never your personal data or credentials.</p>
+
+        <h2>6. Data Retention</h2>
+        <ul>
+            <li>Free tier scan results: 7 days</li>
+            <li>Paid plan scan results: 1 year or until account deletion</li>
+            <li>Account data: Until you request deletion</li>
+        </ul>
+
+        <h2>7. Your Rights (GDPR)</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li>Access your personal data</li>
+            <li>Request data correction or deletion</li>
+            <li>Export your data in a machine-readable format</li>
+            <li>Withdraw consent at any time</li>
+            <li>Lodge a complaint with a supervisory authority</li>
+        </ul>
+
+        <h2>8. Cookies</h2>
+        <p>We use essential cookies for authentication and session management. We do not use tracking cookies or share cookie data with advertisers.</p>
+
+        <h2>9. Contact</h2>
+        <p>For privacy-related inquiries, contact us at: <a href="mailto:privacy@securescanpro.com" style="color:var(--accent);">privacy@securescanpro.com</a></p>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/refund">Refund</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        if (el) { el.href = '/dashboard'; el.textContent = 'Dashboard'; }
+    }
+    </script>
+</body>
+</html>

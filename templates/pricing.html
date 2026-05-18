@@ -13,17 +13,23 @@
     <!-- Header -->
     <header class="header">
         <a href="/" class="logo">
-            <div class="logo-icon">&#x1f6e1;</div>
+            <svg class="logo-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="8" fill="url(#logoGrad)"/>
+                <path d="M20 8L28 12V20C28 25.52 24.48 30.74 20 32C15.52 30.74 12 25.52 12 20V12L20 8Z" fill="white" fill-opacity="0.9"/>
+                <path d="M18 20L19.5 21.5L23 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+            </svg>
             <div>
                 <div class="logo-text">SecureScan Pro</div>
-                <div class="logo-sub">Security Assessment Platform</div>
+                <div class="logo-sub">Enterprise Security Platform</div>
             </div>
         </a>
+        <button class="mobile-menu-btn" onclick="document.querySelector('.header-actions').classList.toggle('mobile-open')">&#9776;</button>
         <div class="header-actions">
-            <a href="/" class="btn-embed" style="text-decoration:none;">&#x1f50d; Scanner</a>
-            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
-            <a href="/pricing" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">&#x1f4b0; Pricing</a>
-            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">&#x1f464; Login</a>
+            <a href="/" class="btn-embed" style="text-decoration:none;">Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">Login</a>
         </div>
     </header>
 
@@ -47,71 +53,71 @@
             <div class="tiers-grid">
                 <!-- Free -->
                 <div class="tier-card">
-                    <div class="tier-badge">Starter</div>
+                    <div class="tier-badge">Free Forever</div>
                     <div class="tier-price">
                         <span class="tier-currency">$</span>
                         <span class="tier-amount">0</span>
                         <span class="tier-period">/forever</span>
                     </div>
-                    <p class="tier-desc">Perfect for individual developers and quick security checks.</p>
+                    <p class="tier-desc">Hook into security scanning. Perfect for quick checks and getting started.</p>
                     <a href="/" class="tier-btn tier-btn-outline">Start Free Scan</a>
                     <ul class="tier-features">
-                        <li class="feature-included">5 scans per day</li>
-                        <li class="feature-included">7 security modules</li>
-                        <li class="feature-included">PDF report download</li>
-                        <li class="feature-included">Email report sharing</li>
-                        <li class="feature-included">Enterprise CRM check</li>
+                        <li class="feature-included">3 scans per day (IP limit)</li>
+                        <li class="feature-included">7 security checks</li>
+                        <li class="feature-included">Summary report (truncated)</li>
+                        <li class="feature-included">Top 3 threats shown</li>
+                        <li class="feature-included">PDF download (watermarked)</li>
+                        <li class="feature-excluded">Full vulnerability details</li>
+                        <li class="feature-excluded">Fix recommendations</li>
+                        <li class="feature-excluded">Scan history</li>
                         <li class="feature-excluded">API access</li>
-                        <li class="feature-excluded">Continuous monitoring</li>
-                        <li class="feature-excluded">Whitelabel reports</li>
-                        <li class="feature-excluded">Priority scanning</li>
                     </ul>
                 </div>
 
                 <!-- Pro -->
                 <div class="tier-card tier-popular">
                     <div class="popular-ribbon">Most Popular</div>
-                    <div class="tier-badge tier-badge-pro">Professional</div>
+                    <div class="tier-badge tier-badge-pro">Pro</div>
                     <div class="tier-price">
                         <span class="tier-currency">$</span>
-                        <span class="tier-amount" data-monthly="49" data-annual="29">49</span>
+                        <span class="tier-amount" data-monthly="29" data-annual="17">29</span>
                         <span class="tier-period">/month</span>
                     </div>
-                    <p class="tier-desc">For freelancers and small security agencies running regular assessments.</p>
-                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Professional')">Get Started</button>
+                    <p class="tier-desc">For freelancers and agencies running regular security assessments.</p>
+                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Pro')">Get Started</button>
                     <ul class="tier-features">
-                        <li class="feature-included">Unlimited scans</li>
-                        <li class="feature-included">All 8 security modules</li>
-                        <li class="feature-included">Authenticated deep scanning</li>
-                        <li class="feature-included">REST API access</li>
-                        <li class="feature-included">Priority scan queue</li>
-                        <li class="feature-included">Branded PDF reports</li>
-                        <li class="feature-included">CVSS scoring</li>
-                        <li class="feature-excluded">Continuous monitoring</li>
-                        <li class="feature-excluded">Team management</li>
+                        <li class="feature-included">50 scans per day</li>
+                        <li class="feature-included">All 12 security modules (full)</li>
+                        <li class="feature-included">Complete vulnerability details</li>
+                        <li class="feature-included">Step-by-step fix guides</li>
+                        <li class="feature-included">PDF reports (branded)</li>
+                        <li class="feature-included">Scan history (30 days)</li>
+                        <li class="feature-included">Email reports</li>
+                        <li class="feature-included">Basic API access</li>
+                        <li class="feature-included">Continuous monitoring</li>
                     </ul>
                 </div>
 
-                <!-- Business -->
+                <!-- Agency -->
                 <div class="tier-card">
-                    <div class="tier-badge tier-badge-biz">Business</div>
+                    <div class="tier-badge tier-badge-biz">Agency</div>
                     <div class="tier-price">
                         <span class="tier-currency">$</span>
-                        <span class="tier-amount" data-monthly="149" data-annual="89">149</span>
+                        <span class="tier-amount" data-monthly="99" data-annual="59">99</span>
                         <span class="tier-period">/month</span>
                     </div>
-                    <p class="tier-desc">For agencies and SMBs who need continuous monitoring and compliance.</p>
-                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Business')">Get Started</button>
+                    <p class="tier-desc">For teams and small agencies who need white-label reports and monitoring.</p>
+                    <button class="tier-btn tier-btn-primary" onclick="contactSales('Agency')">Get Started</button>
                     <ul class="tier-features">
-                        <li class="feature-included">Everything in Professional</li>
-                        <li class="feature-included">Continuous monitoring (daily/weekly)</li>
-                        <li class="feature-included">Slack & webhook alerts</li>
-                        <li class="feature-included">Team access (5 members)</li>
-                        <li class="feature-included">Compliance reports (OWASP, PCI DSS)</li>
-                        <li class="feature-included">Historical trend charts</li>
-                        <li class="feature-included">Subdomain discovery</li>
-                        <li class="feature-included">CSV & JSON export</li>
-                        <li class="feature-excluded">SSO / SAML</li>
+                        <li class="feature-included">Unlimited scans</li>
+                        <li class="feature-included">All Pro features</li>
+                        <li class="feature-included">White-label PDF reports</li>
+                        <li class="feature-included">3 team members</li>
+                        <li class="feature-included">Weekly monitoring alerts</li>
+                        <li class="feature-included">Compliance reports (OWASP)</li>
+                        <li class="feature-included">Webhook/Slack alerts</li>
+                        <li class="feature-included">Full REST API</li>
+                        <li class="feature-included">CVSS scoring + custom branding</li>
                     </ul>
                 </div>
 
@@ -120,21 +126,21 @@
                     <div class="tier-badge tier-badge-ent">Enterprise</div>
                     <div class="tier-price">
                         <span class="tier-currency">$</span>
-                        <span class="tier-amount" data-monthly="499" data-annual="299">499</span>
+                        <span class="tier-amount" data-monthly="299" data-annual="179">299</span>
                         <span class="tier-period">/month</span>
                     </div>
-                    <p class="tier-desc">For large organizations requiring advanced security operations and SLA guarantees.</p>
+                    <p class="tier-desc">For large agencies and MSPs requiring complete security operations.</p>
                     <button class="tier-btn tier-btn-primary" onclick="contactSales('Enterprise')">Contact Sales</button>
                     <ul class="tier-features">
-                        <li class="feature-included">Everything in Business</li>
-                        <li class="feature-included">SSO / SAML authentication</li>
+                        <li class="feature-included">Everything in Agency</li>
                         <li class="feature-included">Unlimited team members</li>
+                        <li class="feature-included">Daily monitoring</li>
+                        <li class="feature-included">Custom domain white-label</li>
+                        <li class="feature-included">PCI DSS / HIPAA reports</li>
+                        <li class="feature-included">Subdomain discovery</li>
+                        <li class="feature-included">SSO / SAML login</li>
+                        <li class="feature-included">Priority support (24hr SLA)</li>
                         <li class="feature-included">Dedicated account manager</li>
-                        <li class="feature-included">Custom integrations</li>
-                        <li class="feature-included">On-premise deployment option</li>
-                        <li class="feature-included">SLA guarantee (99.9%)</li>
-                        <li class="feature-included">CI/CD pipeline integration</li>
-                        <li class="feature-included">Priority support (4hr SLA)</li>
                     </ul>
                 </div>
             </div>
@@ -371,7 +377,7 @@
                         </tr>
                         <tr>
                             <td>Free Scans</td>
-                            <td class="comp-us"><span class="check">&#x2713;</span> Unlimited</td>
+                            <td class="comp-us"><span class="check">&#x2713;</span> 3/day Free</td>
                             <td><span class="cross">&#x2717;</span></td>
                             <td><span class="cross">&#x2717;</span></td>
                             <td><span class="cross">&#x2717;</span></td>
@@ -535,10 +541,21 @@
             alert('Thank you! Your inquiry has been sent.');
         }
     </script>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            <span>&copy; 2024-2026 SecureScan Pro. All rights reserved.</span>
+            <div class="footer-social">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/refund">Refund</a>
+            </div>
+        </div>
+    </footer>
     <script>
     if (localStorage.getItem('ssp_token')) {
         const el = document.getElementById('navAuth');
-        if (el) { el.href = '/dashboard'; el.innerHTML = '&#x1f4ca; Dashboard'; }
+        if (el) { el.href = '/dashboard'; el.textContent = 'Dashboard'; }
     }
     </script>
 </body>

@@ -5,6 +5,26 @@ let pollInterval = null;
 let currentScanData = null;
 const API_BASE = '';
 
+/* Check rate limit on page load */
+(async function checkRateLimit() {
+    try {
+        const hdrs = {};
+        const tk = localStorage.getItem('ssp_token');
+        if (tk) hdrs['Authorization'] = 'Bearer ' + tk;
+        const resp = await fetch(`${API_BASE}/api/rate-limit`, { headers: hdrs });
+        const data = await resp.json();
+        const banner = document.getElementById('rateLimitBanner');
+        if (banner && data.plan === 'free') {
+            document.getElementById('scansRemaining').textContent = data.remaining;
+            if (data.remaining <= data.limit) banner.style.display = 'flex';
+            if (data.remaining <= 0) {
+                banner.innerHTML = '<span>Free plan limit reached. <a href="/pricing">Upgrade to Pro ($29/mo)</a> for unlimited scans.</span>';
+                banner.style.display = 'flex';
+            }
+        }
+    } catch(e) {}
+})();
+
 /* Scan Options Toggle */
 document.querySelectorAll('.scan-option').forEach(opt => {
     opt.addEventListener('click', () => {
@@ -59,6 +79,13 @@ async function startScan() {
             headers: hdrs,
             body: JSON.stringify({ url, scan_types: scanTypes }),
         });
+        if (resp.status === 429) {
+            const err = await resp.json();
+            alert(err.detail || 'Rate limit reached. Please upgrade to Pro.');
+            resetScanBtn();
+            document.getElementById('progressSection').classList.remove('active');
+            return;
+        }
         const data = await resp.json();
         currentScan = data.scan_id;
         pollScanStatus();

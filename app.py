@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import secrets
 import uuid
+from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -56,6 +57,12 @@ scans: dict[str, dict[str, Any]] = {}
 
 # Simple token store (in-memory, maps token -> user_id)
 auth_tokens: dict[str, str] = {}
+
+# Rate limiting (IP -> list of scan timestamps)
+rate_limit_store: dict[str, list[float]] = defaultdict(list)
+FREE_SCAN_LIMIT = 3  # scans per day for unauthenticated users
+PRO_SCAN_LIMIT = 50
+AGENCY_SCAN_LIMIT = 999999  # unlimited
 
 
 # --- Pydantic Models ---
@@ -419,8 +426,21 @@ async def api_scan_history(url: str, authorization: str | None = Header(None)):
 
 # --- Scan API ---
 
+@app.get("/api/rate-limit")
+async def get_rate_limit(request: Request, authorization: str | None = Header(None)):
+    user = get_current_user(authorization)
+    if user:
+        return {"limit": PRO_SCAN_LIMIT, "remaining": PRO_SCAN_LIMIT, "plan": "pro"}
+    client_ip = request.client.host if request.client else "unknown"
+    now = datetime.now(timezone.utc).timestamp()
+    day_ago = now - 86400
+    rate_limit_store[client_ip] = [t for t in rate_limit_store[client_ip] if t > day_ago]
+    used = len(rate_limit_store[client_ip])
+    return {"limit": FREE_SCAN_LIMIT, "remaining": max(0, FREE_SCAN_LIMIT - used), "plan": "free"}
+
+
 @app.post("/api/scan")
-async def start_scan(req: ScanRequest, authorization: str | None = Header(None)):
+async def start_scan(req: ScanRequest, request: Request, authorization: str | None = Header(None)):
     url = normalize_url(req.url)
     hostname = extract_hostname(url)
     if not hostname:
@@ -428,6 +448,19 @@ async def start_scan(req: ScanRequest, authorization: str | None = Header(None))
 
     user = get_current_user(authorization)
     user_id = user["id"] if user else None
+
+    # Rate limiting for unauthenticated users
+    if not user:
+        client_ip = request.client.host if request.client else "unknown"
+        now = datetime.now(timezone.utc).timestamp()
+        day_ago = now - 86400
+        rate_limit_store[client_ip] = [t for t in rate_limit_store[client_ip] if t > day_ago]
+        if len(rate_limit_store[client_ip]) >= FREE_SCAN_LIMIT:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Free plan limit reached ({FREE_SCAN_LIMIT} scans/day). Login or upgrade to Pro for more scans."
+            )
+        rate_limit_store[client_ip].append(now)
 
     scan_id = str(uuid.uuid4())[:8]
     scan_types = req.scan_types or [
@@ -535,6 +568,26 @@ async def pricing_page(request: Request):
 @app.get("/authenticated", response_class=HTMLResponse)
 async def authenticated_page(request: Request):
     return templates.TemplateResponse(request, "authenticated.html")
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    return templates.TemplateResponse(request, "privacy.html")
+
+
+@app.get("/terms", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    return templates.TemplateResponse(request, "terms.html")
+
+
+@app.get("/refund", response_class=HTMLResponse)
+async def refund_page(request: Request):
+    return templates.TemplateResponse(request, "refund.html")
+
+
+@app.get("/api-management", response_class=HTMLResponse)
+async def api_management_page(request: Request):
+    return templates.TemplateResponse(request, "api_management.html")
 
 
 # --- Startup ---
