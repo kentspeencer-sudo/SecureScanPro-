@@ -19,9 +19,10 @@
             </div>
         </a>
         <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">&#x1f50d; Scanner</a>
             <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
-            <a href="/pricing" class="btn-embed" style="text-decoration:none;">&#x1f4b0; Services & Pricing</a>
-            <button class="btn-embed" onclick="showEmbedModal()">&#x2699; Embed Code</button>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">&#x1f4b0; Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">&#x1f464; Login</a>
         </div>
     </header>
 
@@ -105,6 +106,7 @@
                 <button class="tab" data-tab="enterprise" onclick="switchTab('enterprise')">Enterprise CRM</button>
                 <button class="tab" data-tab="threat_intel" onclick="switchTab('threat_intel')">Threat Intel</button>
                 <button class="tab" data-tab="compliance" onclick="switchTab('compliance')">Compliance</button>
+                <button class="tab" data-tab="subdomains" onclick="switchTab('subdomains')">Subdomains</button>
                 <button class="tab" data-tab="credentials" onclick="switchTab('credentials')">Auth Required</button>
                 <button class="tab" data-tab="pricing" onclick="switchTab('pricing')">Agency Pricing</button>
             </div>
@@ -113,20 +115,6 @@
             <div id="tabContents"></div>
         </section>
     </main>
-
-    <!-- Embed Modal -->
-    <div class="modal-overlay" id="embedModal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeEmbedModal()">&times;</button>
-            <h3 class="modal-title">Embed Security Scanner</h3>
-            <p style="color:var(--text-secondary);margin-bottom:16px;font-size:14px;">
-                Copy this code to embed the security scanner widget in your SEO CMS or any website:
-            </p>
-            <div class="code-block" id="embedCode"></div>
-            <br>
-            <button class="btn-scan" onclick="copyEmbed()" style="width:100%;justify-content:center;">Copy Embed Code</button>
-        </div>
-    </div>
 
     <!-- Email Modal -->
     <div class="modal-overlay" id="emailModal">
@@ -142,5 +130,13 @@
     </div>
 
     <script src="/static/js/scanner.js"></script>
+    <script>
+    // Update nav based on login state
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        el.href = '/dashboard';
+        el.innerHTML = '&#x1f4ca; Dashboard';
+    }
+    </script>
 </body>
 </html>

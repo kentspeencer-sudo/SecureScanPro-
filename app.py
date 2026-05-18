@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import secrets
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -12,12 +14,12 @@ from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from modules.ssl_checker import check_ssl
 from modules.header_checker import check_headers
@@ -29,8 +31,15 @@ from modules.enterprise_checker import check_enterprise_security
 from modules.deep_scanner import run_deep_scan
 from modules.threat_intel import run_threat_intel
 from modules.cvss_engine import enrich_issues_with_cvss
+from modules.subdomain_scanner import discover_subdomains
+from database import (
+    init_db, create_user, authenticate_user, verify_user_email,
+    get_user_by_id, save_scan, get_user_scans, get_scan_detail,
+    get_url_scan_history, create_scheduled_scan, get_user_scheduled_scans,
+    delete_scheduled_scan, get_dashboard_stats, get_user_by_api_key,
+)
 
-app = FastAPI(title="Security Scanner API", version="1.0.0")
+app = FastAPI(title="Security Scanner API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,6 +54,11 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 scans: dict[str, dict[str, Any]] = {}
 
+# Simple token store (in-memory, maps token -> user_id)
+auth_tokens: dict[str, str] = {}
+
+
+# --- Pydantic Models ---
 
 class ScanRequest(BaseModel):
     url: str
@@ -52,6 +66,26 @@ class ScanRequest(BaseModel):
     auth_type: str | None = None
     credential: str | None = None
 
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    company: str = ""
+    phone: str = ""
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class MonitorRequest(BaseModel):
+    url: str
+    interval: str = "weekly"
+
+
+# --- Dataclasses ---
 
 @dataclass
 class ScanProgress:
@@ -69,6 +103,8 @@ class ScanProgress:
     credential_tests: list[dict] = field(default_factory=list)
     error: str = ""
 
+
+# --- Helpers ---
 
 def normalize_url(url: str) -> str:
     url = url.strip()
@@ -107,7 +143,26 @@ def overall_grade(issues: list[dict]) -> str:
     return "A"
 
 
-async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
+def get_current_user(authorization: str | None) -> dict | None:
+    if not authorization:
+        return None
+    token = authorization.replace("Bearer ", "")
+    user_id = auth_tokens.get(token)
+    if not user_id:
+        return None
+    return get_user_by_id(user_id)
+
+
+def require_auth(authorization: str | None = Header(None)) -> dict:
+    user = get_current_user(authorization)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return user
+
+
+# --- Scan Engine ---
+
+async def run_scan(scan_id: str, url: str, scan_types: list[str], user_id: str | None = None) -> None:
     scan = scans[scan_id]
     scan["status"] = "running"
     scan["started_at"] = datetime.now(timezone.utc).isoformat()
@@ -206,6 +261,14 @@ async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
             completed += 1
             scan["progress"] = int(completed / total_modules * 100)
 
+        if "subdomains" in scan_types:
+            scan["current_module"] = "Subdomain Discovery"
+            sub_result = await discover_subdomains(hostname)
+            scan["results"]["subdomains"] = asdict(sub_result)
+            all_issues.extend(sub_result.issues)
+            completed += 1
+            scan["progress"] = int(completed / total_modules * 100)
+
         if "deep" in scan_types and scan.get("auth_type") and scan.get("credential"):
             scan["current_module"] = "Authenticated Deep Scan"
             deep_result = await run_deep_scan(
@@ -248,16 +311,129 @@ async def run_scan(scan_id: str, url: str, scan_types: list[str]) -> None:
 
     scan["completed_at"] = datetime.now(timezone.utc).isoformat()
 
+    # Save to database
+    try:
+        save_scan(scan, user_id)
+    except Exception:
+        pass
+
+
+# --- Auth API ---
+
+@app.post("/api/auth/signup")
+async def api_signup(req: SignupRequest):
+    if not req.email or not req.password or not req.full_name:
+        raise HTTPException(status_code=400, detail="Email, password and full name are required")
+    if len(req.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not any(c.isupper() for c in req.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least 1 uppercase letter")
+    if not any(c.isdigit() for c in req.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least 1 number")
+
+    user = create_user(req.email, req.password, req.full_name, req.company, req.phone)
+    if not user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    return {
+        "message": "Account created successfully",
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "full_name": user["full_name"],
+        },
+    }
+
+
+@app.post("/api/auth/login")
+async def api_login(req: LoginRequest):
+    user = authenticate_user(req.email, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = secrets.token_urlsafe(32)
+    auth_tokens[token] = user["id"]
+
+    return {
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "full_name": user["full_name"],
+            "company": user["company"],
+            "api_key": user["api_key"],
+            "is_verified": bool(user["is_verified"]),
+        },
+    }
+
+
+@app.get("/api/auth/verify")
+async def api_verify_email(token: str):
+    if verify_user_email(token):
+        return {"message": "Email verified successfully"}
+    raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+
+
+# --- User Dashboard API ---
+
+@app.get("/api/user/dashboard")
+async def api_user_dashboard(authorization: str | None = Header(None)):
+    user = require_auth(authorization)
+    stats = get_dashboard_stats(user["id"])
+    scan_list = get_user_scans(user["id"])
+    monitors = get_user_scheduled_scans(user["id"])
+    return {"stats": stats, "scans": scan_list, "monitors": monitors}
+
+
+@app.post("/api/user/monitors")
+async def api_add_monitor(req: MonitorRequest, authorization: str | None = Header(None)):
+    user = require_auth(authorization)
+    url = normalize_url(req.url)
+    hostname = extract_hostname(url)
+    if not hostname:
+        raise HTTPException(status_code=400, detail="Invalid URL")
+    if req.interval not in ("daily", "weekly", "monthly"):
+        raise HTTPException(status_code=400, detail="Interval must be daily, weekly, or monthly")
+    scan_id = create_scheduled_scan(
+        user["id"], url, hostname,
+        ["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel", "subdomains"],
+        req.interval,
+    )
+    return {"id": scan_id, "message": "Monitor added"}
+
+
+@app.delete("/api/user/monitors/{monitor_id}")
+async def api_delete_monitor(monitor_id: str, authorization: str | None = Header(None)):
+    user = require_auth(authorization)
+    if not delete_scheduled_scan(monitor_id, user["id"]):
+        raise HTTPException(status_code=404, detail="Monitor not found")
+    return {"message": "Monitor deleted"}
+
+
+@app.get("/api/user/scan-history")
+async def api_scan_history(url: str, authorization: str | None = Header(None)):
+    require_auth(authorization)
+    history = get_url_scan_history(url)
+    return {"history": history}
+
+
+# --- Scan API ---
 
 @app.post("/api/scan")
-async def start_scan(req: ScanRequest):
+async def start_scan(req: ScanRequest, authorization: str | None = Header(None)):
     url = normalize_url(req.url)
     hostname = extract_hostname(url)
     if not hostname:
         raise HTTPException(status_code=400, detail="Invalid URL")
 
+    user = get_current_user(authorization)
+    user_id = user["id"] if user else None
+
     scan_id = str(uuid.uuid4())[:8]
-    scan_types = req.scan_types or ["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel"]
+    scan_types = req.scan_types or [
+        "ssl", "headers", "ports", "dns", "tech", "vulns",
+        "enterprise", "threat_intel", "subdomains",
+    ]
 
     scan_data = {
         "scan_id": scan_id,
@@ -283,7 +459,7 @@ async def start_scan(req: ScanRequest):
         if "deep" not in scan_types:
             scan_types.append("deep")
 
-    asyncio.create_task(run_scan(scan_id, url, scan_types))
+    asyncio.create_task(run_scan(scan_id, url, scan_types, user_id))
 
     return {"scan_id": scan_id, "status": "queued", "url": url}
 
@@ -291,6 +467,9 @@ async def start_scan(req: ScanRequest):
 @app.get("/api/scan/{scan_id}")
 async def get_scan(scan_id: str):
     if scan_id not in scans:
+        db_scan = get_scan_detail(scan_id)
+        if db_scan:
+            return db_scan
         raise HTTPException(status_code=404, detail="Scan not found")
     return scans[scan_id]
 
@@ -298,6 +477,9 @@ async def get_scan(scan_id: str):
 @app.get("/api/scan/{scan_id}/report")
 async def get_report(scan_id: str):
     if scan_id not in scans:
+        db_scan = get_scan_detail(scan_id)
+        if db_scan:
+            return db_scan
         raise HTTPException(status_code=404, detail="Scan not found")
     scan = scans[scan_id]
     if scan["status"] != "completed":
@@ -316,14 +498,26 @@ async def get_report(scan_id: str):
     }
 
 
+# --- Page Routes ---
+
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse(request, "dashboard.html")
 
 
-@app.get("/embed", response_class=HTMLResponse)
-async def embed_widget(request: Request):
-    return templates.TemplateResponse(request, "embed.html")
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse(request, "auth.html")
+
+
+@app.get("/signup", response_class=HTMLResponse)
+async def signup_page(request: Request):
+    return templates.TemplateResponse(request, "auth.html")
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def user_dashboard_page(request: Request):
+    return templates.TemplateResponse(request, "user_dashboard.html")
 
 
 @app.get("/report/{scan_id}", response_class=HTMLResponse)
@@ -341,3 +535,10 @@ async def pricing_page(request: Request):
 @app.get("/authenticated", response_class=HTMLResponse)
 async def authenticated_page(request: Request):
     return templates.TemplateResponse(request, "authenticated.html")
+
+
+# --- Startup ---
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()

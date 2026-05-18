@@ -37,6 +37,7 @@ async function startScan() {
         return;
     }
     if (!scanTypes.includes('threat_intel')) scanTypes.push('threat_intel');
+    if (!scanTypes.includes('subdomains')) scanTypes.push('subdomains');
 
     const btn = document.getElementById('scanBtn');
     btn.disabled = true;
@@ -50,9 +51,12 @@ async function startScan() {
     document.getElementById('progressModule').textContent = 'Starting scan...';
 
     try {
+        const hdrs = { 'Content-Type': 'application/json' };
+        const tk = localStorage.getItem('ssp_token');
+        if (tk) hdrs['Authorization'] = 'Bearer ' + tk;
         const resp = await fetch(`${API_BASE}/api/scan`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: hdrs,
             body: JSON.stringify({ url, scan_types: scanTypes }),
         });
         const data = await resp.json();
@@ -159,6 +163,7 @@ function renderTabContents(data) {
         <div class="tab-content" id="tab-enterprise">${renderEnterprise(data.results.enterprise)}</div>
         <div class="tab-content" id="tab-threat_intel">${renderThreatIntel(data.results.threat_intel)}</div>
         <div class="tab-content" id="tab-compliance">${renderCompliance(data.results.compliance, data.all_issues)}</div>
+        <div class="tab-content" id="tab-subdomains">${renderSubdomains(data.results.subdomains)}</div>
         <div class="tab-content" id="tab-credentials">${renderCredentials(data.credential_tests)}</div>
         <div class="tab-content" id="tab-pricing">${renderPricing(data.agency_pricing)}</div>
     `;
@@ -512,6 +517,40 @@ function renderCompliance(comp, issues) {
             </tr>`;
         }
         html += '</table>';
+    }
+
+    return html;
+}
+
+/* Subdomain Discovery Tab */
+function renderSubdomains(sub) {
+    if (!sub) return '<div class="empty-state"><div class="empty-state-text">Subdomain scan not performed.</div></div>';
+
+    let html = '';
+
+    // Summary cards
+    html += '<div class="summary-grid" style="margin-bottom:24px;">';
+    html += `<div class="summary-card"><div class="number" style="font-size:32px;color:var(--accent);">${sub.total_found || 0}</div><div class="label">Subdomains Found</div></div>`;
+    const srcList = (sub.sources || []).join(', ') || 'None';
+    html += `<div class="summary-card"><div class="number" style="font-size:16px;color:var(--text);">${srcList}</div><div class="label">Sources Used</div></div>`;
+    html += `<div class="summary-card"><div class="number" style="font-size:32px;color:${(sub.issues||[]).length>0?'var(--warning)':'var(--success)'};">${(sub.issues||[]).length}</div><div class="label">Issues Found</div></div>`;
+    html += '</div>';
+
+    // Subdomains table
+    const subs = sub.subdomains || [];
+    if (subs.length > 0) {
+        html += '<h3 style="margin:20px 0 12px;font-size:16px;">Discovered Subdomains</h3>';
+        html += '<table class="detail-table"><tr><th>Subdomain</th><th>IP Address</th><th>Source</th></tr>';
+        for (const s of subs) {
+            html += `<tr>
+                <td style="font-family:monospace;font-size:13px;">${esc(s.subdomain)}</td>
+                <td style="font-family:monospace;font-size:13px;color:var(--text-secondary);">${s.ip || 'N/A'}</td>
+                <td style="font-size:12px;">${esc(s.source)}</td>
+            </tr>`;
+        }
+        html += '</table>';
+    } else {
+        html += '<div class="empty-state"><div class="empty-state-text">No subdomains discovered for this domain.</div></div>';
     }
 
     return html;

@@ -22,7 +22,8 @@
         <div class="header-actions">
             <a href="/" class="btn-embed" style="text-decoration:none;">&#x1f50d; Scanner</a>
             <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
-            <a href="/pricing" class="btn-embed" style="text-decoration:none;border-color:var(--accent);color:var(--accent);">&#x1f4b0; Pricing</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">&#x1f4b0; Pricing</a>
+            <a href="/login" class="btn-embed" style="text-decoration:none;" id="navAuth">&#x1f464; Login</a>
         </div>
     </header>
 
@@ -533,6 +534,12 @@
             closeContactModal();
             alert('Thank you! Your inquiry has been sent.');
         }
+    </script>
+    <script>
+    if (localStorage.getItem('ssp_token')) {
+        const el = document.getElementById('navAuth');
+        if (el) { el.href = '/dashboard'; el.innerHTML = '&#x1f4ca; Dashboard'; }
+    }
     </script>
 </body>
 </html>

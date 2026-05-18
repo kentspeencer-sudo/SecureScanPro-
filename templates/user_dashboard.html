@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .dash-container { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .dash-header h1 { color: var(--text); font-size: 22px; }
+        .dash-header .user-info { color: var(--text-secondary); font-size: 14px; }
+        .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-card .stat-num { font-size: 28px; font-weight: 800; color: var(--accent); }
+        .stat-card .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+        .section-title { color: var(--text); font-size: 16px; font-weight: 700; margin: 24px 0 12px; }
+        .scan-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .scan-table th { background: rgba(99,102,241,0.1); color: var(--text-secondary); font-size: 11px; text-transform: uppercase; padding: 12px 14px; text-align: left; letter-spacing: 0.5px; }
+        .scan-table td { padding: 12px 14px; border-top: 1px solid var(--border); color: var(--text); font-size: 14px; }
+        .scan-table tr:hover td { background: rgba(99,102,241,0.05); }
+        .grade-badge { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 6px; font-weight: 800; font-size: 14px; }
+        .grade-A { background: rgba(16,185,129,0.2); color: #10b981; }
+        .grade-B { background: rgba(59,130,246,0.2); color: #3b82f6; }
+        .grade-C { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .grade-D { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .grade-F { background: rgba(239,68,68,0.3); color: #ef4444; }
+        .api-key-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+        .api-key-value { font-family: monospace; font-size: 14px; background: var(--bg); padding: 10px 14px; border-radius: 8px; color: var(--accent); word-break: break-all; cursor: pointer; }
+        .monitor-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .monitor-url { color: var(--text); font-weight: 600; font-size: 14px; }
+        .monitor-interval { color: var(--text-secondary); font-size: 13px; }
+        .btn-delete { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .empty-msg { color: var(--text-secondary); font-size: 14px; text-align: center; padding: 32px; }
+        .schedule-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .schedule-form input, .schedule-form select { padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; }
+        .schedule-form input { flex: 1; min-width: 200px; }
+        .btn-schedule { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">
+            <div class="logo-icon">&#x1f6e1;</div>
+            <div>
+                <div class="logo-text">SecureScan Pro</div>
+                <div class="logo-sub">Security Assessment Platform</div>
+            </div>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="btn-embed" style="text-decoration:none;">&#x1f50d; Scanner</a>
+            <a href="/authenticated" class="btn-embed" style="text-decoration:none;">&#x1f510; Auth Scan</a>
+            <a href="/pricing" class="btn-embed" style="text-decoration:none;">&#x1f4b0; Pricing</a>
+            <a href="/dashboard" class="btn-embed" style="text-decoration:none;background:var(--accent);color:#fff;">&#x1f4ca; Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="dash-container">
+            <div class="dash-header">
+                <div>
+                    <h1>Welcome, <span id="userName">User</span></h1>
+                    <div class="user-info"><span id="userEmail"></span> &bull; <span id="userCompany"></span></div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-num" id="statScans">0</div>
+                    <div class="stat-label">Total Scans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="statCritical" style="color:var(--danger);">0</div>
+                    <div class="stat-label">Critical Issues</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="statRisk">0.0</div>
+                    <div class="stat-label">Avg Risk Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="statMonitors" style="color:var(--success);">0</div>
+                    <div class="stat-label">Active Monitors</div>
+                </div>
+            </div>
+
+            <!-- API Key -->
+            <div class="api-key-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong style="color:var(--text);font-size:14px;">Your API Key</strong>
+                        <div style="color:var(--text-secondary);font-size:12px;margin-top:2px;">Use this key to access the scanner API programmatically</div>
+                    </div>
+                    <button class="btn-logout" onclick="copyApiKey()" id="copyKeyBtn">Copy</button>
+                </div>
+                <div class="api-key-value" id="apiKeyValue" onclick="copyApiKey()" title="Click to copy">Loading...</div>
+            </div>
+
+            <!-- Continuous Monitoring -->
+            <h3 class="section-title">Continuous Monitoring</h3>
+            <div class="schedule-form">
+                <input type="text" id="monitorUrl" placeholder="https://example.com">
+                <select id="monitorInterval">
+                    <option value="daily">Daily</option>
+                    <option value="weekly" selected>Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <button class="btn-schedule" onclick="addMonitor()">+ Add Monitor</button>
+            </div>
+            <div id="monitorList"></div>
+
+            <!-- Scan History -->
+            <h3 class="section-title">Scan History</h3>
+            <table class="scan-table" id="scanTable">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Grade</th>
+                        <th>Issues</th>
+                        <th>Risk</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="scanHistory"></tbody>
+            </table>
+            <div class="empty-msg" id="emptyHistory" style="display:none;">No scans yet. Start scanning from the main page!</div>
+        </div>
+    </main>
+
+    <script>
+    const API = '';
+    let token = localStorage.getItem('ssp_token');
+    let user = JSON.parse(localStorage.getItem('ssp_user') || '{}');
+
+    if (!token) { window.location.href = '/login'; }
+
+    function authHeaders() {
+        return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    }
+
+    function logout() {
+        localStorage.removeItem('ssp_token');
+        localStorage.removeItem('ssp_user');
+        window.location.href = '/login';
+    }
+
+    function copyApiKey() {
+        const val = document.getElementById('apiKeyValue').textContent;
+        navigator.clipboard.writeText(val);
+        const btn = document.getElementById('copyKeyBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+
+    async function loadDashboard() {
+        document.getElementById('userName').textContent = user.full_name || 'User';
+        document.getElementById('userEmail').textContent = user.email || '';
+        document.getElementById('userCompany').textContent = user.company || '';
+        document.getElementById('apiKeyValue').textContent = user.api_key || 'N/A';
+
+        try {
+            const resp = await fetch('/api/user/dashboard', { headers: authHeaders() });
+            if (resp.status === 401) { logout(); return; }
+            const data = await resp.json();
+
+            document.getElementById('statScans').textContent = data.stats.total_scans;
+            document.getElementById('statCritical').textContent = data.stats.total_critical;
+            document.getElementById('statRisk').textContent = data.stats.avg_risk_score;
+            document.getElementById('statMonitors').textContent = data.stats.active_monitors;
+
+            // Scan history
+            const tbody = document.getElementById('scanHistory');
+            if (data.scans.length === 0) {
+                document.getElementById('emptyHistory').style.display = 'block';
+                document.getElementById('scanTable').style.display = 'none';
+            } else {
+                tbody.innerHTML = data.scans.map(s => `
+                    <tr>
+                        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.url}</td>
+                        <td><span class="grade-badge grade-${s.grade || 'C'}">${s.grade || '-'}</span></td>
+                        <td>${s.total_issues || 0}</td>
+                        <td>${s.risk_score || 0}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);">${s.completed_at ? new Date(s.completed_at).toLocaleDateString() : '-'}</td>
+                        <td><a href="/report/${s.id}" style="color:var(--accent);font-size:13px;">View</a></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Monitors
+            const ml = document.getElementById('monitorList');
+            if (data.monitors.length === 0) {
+                ml.innerHTML = '<div class="empty-msg">No active monitors. Add one above!</div>';
+            } else {
+                ml.innerHTML = data.monitors.map(m => `
+                    <div class="monitor-card">
+                        <div>
+                            <div class="monitor-url">${m.url}</div>
+                            <div class="monitor-interval">${m.interval} &bull; Next: ${m.next_run ? new Date(m.next_run).toLocaleString() : 'N/A'}</div>
+                        </div>
+                        <button class="btn-delete" onclick="deleteMonitor('${m.id}')">Delete</button>
+                    </div>
+                `).join('');
+            }
+        } catch (err) {
+            console.error('Dashboard load error:', err);
+        }
+    }
+
+    async function addMonitor() {
+        const url = document.getElementById('monitorUrl').value.trim();
+        const interval = document.getElementById('monitorInterval').value;
+        if (!url) { alert('Please enter a URL'); return; }
+
+        try {
+            const resp = await fetch('/api/user/monitors', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ url, interval }),
+            });
+            if (resp.ok) {
+                document.getElementById('monitorUrl').value = '';
+                loadDashboard();
+            } else {
+                const data = await resp.json();
+                alert(data.detail || 'Failed to add monitor');
+            }
+        } catch (err) { alert('Connection error'); }
+    }
+
+    async function deleteMonitor(id) {
+        if (!confirm('Delete this monitor?')) return;
+        try {
+            await fetch('/api/user/monitors/' + id, {
+                method: 'DELETE',
+                headers: authHeaders(),
+            });
+            loadDashboard();
+        } catch (err) { alert('Connection error'); }
+    }
+
+    loadDashboard();
+    </script>
+</body>
+</html>
