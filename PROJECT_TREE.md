@@ -19,12 +19,16 @@ Open `http://localhost:8000/` in browser.
 
 ```
 SecureScanPro-/
-├── app.py                          # [340 lines] FastAPI main — routes, scan orchestration, CVSS enrichment
+├── app.py                          # [420 lines] FastAPI main — routes, auth, scan orchestration, CVSS enrichment
 ├── main.py                         # [5 lines]   Entry point: `uvicorn app:app`
+├── database.py                     # [280 lines] SQLite backend — users, scans, scan history, scheduled scans
 ├── pyproject.toml                  # Project metadata & dependencies
+├── Dockerfile                      # Docker build for Fly.io deployment
+├── fly.toml                        # Fly.io deployment config with persistent volume
 ├── securescan-pro.html             # [~47KB] Standalone single-file scanner (embed anywhere)
 ├── README.md                       # Documentation & setup guide
 ├── PROJECT_TREE.md                 # THIS FILE — architecture reference
+├── NEXT_STEPS.md                   # Remaining phases guide for AI models
 ├── SecureScanPro-Implementation-Roadmap.md  # Next steps roadmap: 5 phases, timelines, revenue
 ├── SecureScanPro-Competitor-Analysis.md     # Top 10 competitor deep analysis with pricing
 │
@@ -39,12 +43,15 @@ SecureScanPro-/
 │   ├── enterprise_checker.py       # [365 lines] Enterprise CRM: API/DB/App/Infra security
 │   ├── deep_scanner.py             # [450 lines] Authenticated deep scan: API/DB/Admin/Session
 │   ├── threat_intel.py             # [420 lines] Threat Intelligence: NVD CVE, Shodan, VirusTotal, HIBP, Safe Browsing, SecurityTrails
-│   └── cvss_engine.py              # [320 lines] CVSS v3.1 scoring + OWASP Top 10 + PCI DSS compliance mapping
+│   ├── cvss_engine.py              # [320 lines] CVSS v3.1 scoring + OWASP Top 10 + PCI DSS compliance mapping
+│   └── subdomain_scanner.py        # [140 lines] Passive subdomain discovery: crt.sh + DNS brute-force
 │
 ├── templates/                      # Jinja2 HTML templates
-│   ├── dashboard.html              # [150 lines] Main scanner dashboard UI (+ Compliance + Threat Intel tabs)
-│   ├── authenticated.html          # [330 lines] Credential-gated deep scan page with tabbed results
-│   ├── pricing.html                # [520 lines] Professional services & pricing page
+│   ├── dashboard.html              # [141 lines] Main scanner dashboard UI (12 tabs including Subdomains)
+│   ├── authenticated.html          # [339 lines] Credential-gated deep scan page with tabbed results
+│   ├── pricing.html                # [545 lines] Professional services & pricing page
+│   ├── auth.html                   # [280 lines] Login/Signup forms with validation + password strength
+│   ├── user_dashboard.html         # [210 lines] User dashboard: stats, scan history, continuous monitoring
 │   ├── embed.html                  # [120 lines] Embeddable widget (iframe/JS)
 │   └── report.html                 # [165 lines] Report viewer page
 │
@@ -53,11 +60,11 @@ SecureScanPro-/
     │   ├── style.css               # [628 lines] Dark theme, responsive, severity colors
     │   └── pricing.css             # [380 lines] Pricing tiers, services grid, comparison table
     └── js/
-        ├── scanner.js              # [920 lines] Main frontend logic — scan, render, CVSS, compliance, threat intel, PDF, email
+        ├── scanner.js              # [940 lines] Main frontend logic — scan, render, subdomains, CVSS, compliance, PDF, email
         └── embed-widget.js         # [24 lines]  Embed widget loader script
 ```
 
-**Total: ~7,100+ lines of code across 25 files**
+**Total: ~8,500+ lines of code across 32 files**
 
 ---
 
@@ -79,7 +86,10 @@ User enters URL → dashboard.html
         ├── vuln_checker.check_vulnerabilities(url) → VulnResult
         ├── enterprise_checker.check_enterprise_security(url) → EnterpriseResult
         ├── threat_intel.run_threat_intel(url, hostname, techs) → ThreatIntelResult
+        ├── subdomain_scanner.discover_subdomains(hostname)  → SubdomainResult
         └── cvss_engine.enrich_issues_with_cvss(all_issues) → ComplianceResult
+        ↓
+    Results saved to SQLite database (database.py)
         ↓
     scanner.js polls GET /api/scan/{id} every 1s
         ↓
@@ -93,8 +103,9 @@ User enters URL → dashboard.html
         ├── renderTech()        → CMS, JS libs, meta tags
         ├── renderVulns()       → Exposed paths, form issues
         ├── renderEnterprise()  → 4 security layers (API/DB/App/Infra)
-        ├── renderThreatIntel() → CVE table, API status, breach data, subdomains
+        ├── renderThreatIntel() → CVE table, API status, breach data
         ├── renderCompliance()  → CVSS scores, OWASP grid, PCI DSS table
+        ├── renderSubdomains()  → Discovered subdomains table (crt.sh + DNS brute-force)
         ├── renderCredentials() → Auth-required tests list
         └── renderPricing()     → Agency pricing reference
 ```
@@ -108,11 +119,19 @@ User enters URL → dashboard.html
 **Routes:**
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/` | GET | Dashboard page |
-| `/authenticated` | GET | Credential-gated scan page |
+| `/` | GET | Dashboard page (main scanner) |
+| `/authenticated` | GET | Credential-gated deep scan page |
 | `/pricing` | GET | Professional services & pricing page |
-| `/embed` | GET | Embeddable widget |
+| `/login` | GET | Login/Signup page |
+| `/signup` | GET | Login/Signup page (redirects to auth.html) |
+| `/dashboard` | GET | User dashboard (scan history, monitors, API key) |
 | `/report/{scan_id}` | GET | Report viewer |
+| `/api/auth/signup` | POST | Register new user (body: `{email, password, full_name, company, phone}`) |
+| `/api/auth/login` | POST | Login (body: `{email, password}`) → returns JWT-like token |
+| `/api/auth/verify` | GET | Verify email with token |
+| `/api/user/dashboard` | GET | Get user stats, scan history, monitors (auth required) |
+| `/api/user/monitors` | POST | Add scheduled scan monitor (auth required) |
+| `/api/user/monitors/{id}` | DELETE | Delete monitor (auth required) |
 | `/api/scan` | POST | Start new scan (body: `{url, scan_types}`) |
 | `/api/scan/{scan_id}` | GET | Poll scan status/results |
 | `/api/scan/{scan_id}/report` | GET | Get completed report data |
@@ -122,13 +141,32 @@ User enters URL → dashboard.html
 - `extract_hostname(url)` — Extracts hostname from URL
 - `count_by_severity(issues)` — Counts critical/high/medium/low/info
 - `overall_grade(issues)` — Returns A-F grade based on severity counts
-- `run_scan(scan_id, url, scan_types)` — Async orchestrator, calls all modules
+- `run_scan(scan_id, url, scan_types, user_id)` — Async orchestrator, calls all modules
+- `get_current_user(authorization)` — Extract user from Bearer token
+- `require_auth(authorization)` — Require authentication for protected routes
 
 **Data Flow:**
-- `scans` dict stores all scan data in memory (no database)
+- `scans` dict stores active scan data in memory
+- Completed scans saved to SQLite database (`database.py`)
 - Each scan has: `scan_id`, `url`, `hostname`, `status`, `progress`, `results`, `summary`, `all_issues`, `credential_tests`, `agency_pricing`
-- Scan types: `["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel"]`
+- Scan types: `["ssl", "headers", "ports", "dns", "tech", "vulns", "enterprise", "threat_intel", "subdomains"]`
 - After all scans: `enrich_issues_with_cvss(all_issues)` adds CVSS scores, OWASP mapping, PCI DSS mapping
+
+### `database.py` — SQLite Backend
+
+**Tables:**
+- `users` — id, email, password_hash, full_name, company, phone, role, is_verified, verification_token, api_key, scan_count
+- `scan_history` — id, user_id, url, hostname, scan_types, status, grade, total_issues, severity counts, risk_score, results_json
+- `scheduled_scans` — id, user_id, url, hostname, scan_types, interval (daily/weekly/monthly), is_active, next_run
+
+**Key Functions:**
+- `init_db()` — Create tables and indexes
+- `create_user()` / `authenticate_user()` — Registration and login with PBKDF2 password hashing
+- `verify_user_email(token)` — Email verification with expiry
+- `save_scan()` — Save completed scan results to database
+- `get_user_scans()` — Get user's scan history
+- `create_scheduled_scan()` / `get_due_scheduled_scans()` — Continuous monitoring
+- `get_dashboard_stats()` — Aggregate stats for user dashboard
 
 **Grading Logic (line 88-102):**
 - F = any critical issue
