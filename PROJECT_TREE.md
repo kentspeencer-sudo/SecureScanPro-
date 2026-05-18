@@ -52,6 +52,10 @@ SecureScanPro-/
 │   ├── pricing.html                # [545 lines] Professional services & pricing page
 │   ├── auth.html                   # [280 lines] Login/Signup forms with validation + password strength
 │   ├── user_dashboard.html         # [210 lines] User dashboard: stats, scan history, continuous monitoring
+│   ├── privacy.html                # Privacy Policy page (GDPR compliant)
+│   ├── terms.html                  # Terms of Service page
+│   ├── refund.html                 # Refund Policy page
+│   ├── api_management.html         # API key management dashboard (usage/hits/cost tracking)
 │   ├── embed.html                  # [120 lines] Embeddable widget (iframe/JS)
 │   └── report.html                 # [165 lines] Report viewer page
 │

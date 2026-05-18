@@ -55,6 +55,19 @@
 - Embed modal removed, replaced with Login link
 - Consistent navigation on all pages
 
+**3.8: Professional UI Overhaul — Trust & Conversion (DONE)**
+- SVG brand logo replacing emoji on all pages
+- Trust bar: SSL Encrypted, Scans are Private, GDPR Compliant, Built by Experts
+- Hero section: stats (12+ modules, 500+ agencies, 50K+ scans, 99.9% uptime)
+- Social proof: 5 client testimonials + "Trusted by 500+ agencies"
+- Legal pages: Privacy Policy (`/privacy`), Terms of Service (`/terms`), Refund Policy (`/refund`)
+- Footer with legal links + social media links on all pages
+- Rate limiting: 3 scans/day free, 50/day pro, unlimited agency (IP-based + account-based)
+- Updated pricing: Free ($0) / Pro ($29) / Agency ($99) / Enterprise ($299)
+- API Management dashboard (`/api-management`) with usage/hits/cost tracking
+- Mobile hamburger menu + responsive layout on all pages
+- Rate limit banner on scanner page showing remaining free scans
+
 ---
 
 ## Remaining Work
@@ -105,8 +118,9 @@
 - Auto-deploy to Fly.io on push
 - Test suite (pytest)
 
-**5.5: Rate Limiting & Security**
-- Redis-based rate limiting
+**5.5: Rate Limiting & Security (PARTIALLY DONE)**
+- IP-based rate limiting (DONE — in-memory, 3/day free tier)
+- Redis-based rate limiting (upgrade from in-memory)
 - Enhanced API key authentication
 - CORS configuration
 - Input validation/sanitization
@@ -122,7 +136,7 @@
 
 ### Live Deployment
 - **URL:** https://security-scanner-kuaqjqeo.fly.dev/ (needs Fly.io token to redeploy)
-- **Pages:** `/` (Scanner), `/authenticated` (Deep Scan), `/pricing` (Services), `/login` (Login/Signup), `/dashboard` (User Dashboard)
+- **Pages:** `/` (Scanner), `/authenticated` (Deep Scan), `/pricing` (Services), `/login` (Login/Signup), `/dashboard` (User Dashboard), `/privacy` (Privacy), `/terms` (Terms), `/refund` (Refund), `/api-management` (API Keys)
 
 ### Local Development
 ```bash
@@ -156,8 +170,8 @@ export SECURITYTRAILS_API_KEY="your-key"
 ### Current Stats
 - **12 scanning modules** (ssl, headers, ports, dns, tech, vulns, enterprise, deep_scanner, threat_intel, cvss_engine, subdomain_scanner + database)
 - **13 dashboard tabs** (Overview, SSL/TLS, Headers, Ports, DNS, Technology, Vulnerabilities, Enterprise CRM, Threat Intel, Compliance, Subdomains, Auth Required, Agency Pricing)
-- **7 pages** (Scanner, Auth Scan, Pricing, Login/Signup, User Dashboard, Report, Embed)
-- **32 files**, **~8,500+ lines of code**
+- **11 pages** (Scanner, Auth Scan, Pricing, Login/Signup, User Dashboard, Report, Embed, Privacy, Terms, Refund, API Management)
+- **36 files**, **~10,000+ lines of code**
 - **30+ CVSS vulnerability mappings**
 - **SQLite database** with 3 tables (users, scan_history, scheduled_scans)
 - **80+ common subdomains** in brute-force wordlist
