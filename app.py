@@ -590,6 +590,53 @@ async def api_management_page(request: Request):
     return templates.TemplateResponse(request, "api_management.html")
 
 
+# --- PDF Report API ---
+
+class PDFReportRequest(BaseModel):
+    whitelabel: dict[str, str] | None = None
+    language: str = "en"
+    include_executive_summary: bool = True
+
+
+@app.post("/api/scan/{scan_id}/pdf")
+async def generate_pdf(scan_id: str, req: PDFReportRequest | None = None):
+    from fastapi.responses import Response
+    from modules.pdf_report import generate_pdf_report
+
+    scan = scans.get(scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    if scan.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Scan not yet completed")
+
+    body = req or PDFReportRequest()
+    pdf_bytes = generate_pdf_report(
+        scan_data=scan,
+        whitelabel=body.whitelabel,
+        include_executive_summary=body.include_executive_summary,
+        language=body.language,
+    )
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="securescan-report-{scan_id[:8]}.pdf"'},
+    )
+
+
+@app.get("/api/languages")
+async def get_languages():
+    from modules.pdf_report import TRANSLATIONS
+    return {
+        "languages": [
+            {"code": "en", "name": "English", "direction": "ltr"},
+            {"code": "ur", "name": "اردو (Urdu)", "direction": "rtl"},
+            {"code": "ar", "name": "العربية (Arabic)", "direction": "rtl"},
+            {"code": "es", "name": "Español (Spanish)", "direction": "ltr"},
+        ]
+    }
+
+
 # --- Startup ---
 
 @app.on_event("startup")

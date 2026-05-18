@@ -824,3 +824,8 @@ body {
     height: 40px;
     flex-shrink: 0;
 }
+
+/* PDF Language Dropdown */
+.pdf-lang-menu.show { display: block !important; }
+.pdf-lang-menu button:hover { background: rgba(99,102,241,0.1); }
+.pdf-lang-dropdown { vertical-align: top; }

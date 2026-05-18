@@ -943,6 +943,37 @@ function generatePDF() {
     setTimeout(() => { win.print(); }, 500);
 }
 
+/* Server-side PDF Report (Whitelabel + Executive Summary) */
+async function downloadServerPDF(lang) {
+    if (!currentScan) { alert('No scan available.'); return; }
+    const language = lang || 'en';
+    try {
+        const resp = await fetch(`${API_BASE}/api/scan/${currentScan}/pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language: language,
+                include_executive_summary: true,
+                whitelabel: null,
+            }),
+        });
+        if (!resp.ok) {
+            const err = await resp.json();
+            alert(err.detail || 'PDF generation failed.');
+            return;
+        }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `securescan-report-${currentScan.substring(0, 8)}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        alert('PDF generation failed: ' + e.message);
+    }
+}
+
 /* Email Modal */
 function showEmailModal() {
     document.getElementById('emailModal').classList.add('active');

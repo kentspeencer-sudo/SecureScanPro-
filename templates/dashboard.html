@@ -119,7 +119,17 @@
             <div class="export-bar">
                 <button class="btn-export btn-export-primary" onclick="exportJSON()">&#x1f4e5; Export JSON</button>
                 <button class="btn-export" onclick="exportCSV()">&#x1f4c4; Export CSV</button>
-                <button class="btn-export btn-export-primary" onclick="generatePDF()">&#x1f4d1; Download PDF</button>
+                <button class="btn-export btn-export-primary" onclick="generatePDF()">&#x1f4d1; Quick PDF</button>
+                <button class="btn-export btn-export-primary" onclick="downloadServerPDF('en')">&#x1f4d1; Pro PDF Report</button>
+                <div class="pdf-lang-dropdown" style="position:relative;display:inline-block;">
+                    <button class="btn-export" onclick="this.nextElementSibling.classList.toggle('show')">&#x1f310; PDF Language</button>
+                    <div class="pdf-lang-menu" style="display:none;position:absolute;top:100%;left:0;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:4px;z-index:10;min-width:140px;">
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('en');this.parentElement.classList.remove('show');">English</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('ur');this.parentElement.classList.remove('show');">&#1575;&#1585;&#1583;&#1608; (Urdu)</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('ar');this.parentElement.classList.remove('show');">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577; (Arabic)</button>
+                        <button class="btn-export" style="display:block;width:100%;text-align:left;margin:2px 0;" onclick="downloadServerPDF('es');this.parentElement.classList.remove('show');">Espa&ntilde;ol</button>
+                    </div>
+                </div>
                 <button class="btn-export" onclick="showEmailModal()">&#x1f4e7; Email Report</button>
                 <button class="btn-export" onclick="printReport()">&#x1f5a8; Print</button>
                 <button class="btn-export" onclick="newScan()">&#x1f504; New Scan</button>
